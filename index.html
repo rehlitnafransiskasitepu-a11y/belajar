@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Detektor Warna &amp; Penanda Posisi Virus</title>
+  <title>BioSort: Tantangan Peranan Virus — Game Biologi SMA Kelas X</title>
 
-  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -18,6 +18,7 @@
         extend: {
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace'],
           },
         },
@@ -26,1822 +27,1844 @@
   </script>
 
   <style>
-    /* Kustomisasi scrollbar halus untuk panel riwayat */
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
+    /* =====================================================================
+       KUSTOMISASI ANIMASI & EFEK VISUAL LABORATORIUM VIROLOGI
+       ===================================================================== */
+    body {
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
     }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.6);
-      border-radius: 9999px;
+
+    h1, h2, h3, .font-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(71, 85, 105, 0.7);
-      border-radius: 9999px;
+
+    /* Animasi kartu masuk */
+    @keyframes cardPopIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(16px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: rgba(6, 182, 212, 0.8);
+    .animate-card-in {
+      animation: cardPopIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Animasi getar saat jawaban salah */
+    @keyframes shakeWrong {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      20% { transform: translateX(-12px) rotate(-2deg); }
+      40% { transform: translateX(12px) rotate(2deg); }
+      60% { transform: translateX(-8px) rotate(-1deg); }
+      80% { transform: translateX(8px) rotate(1deg); }
+    }
+    .animate-shake {
+      animation: shakeWrong 0.42s ease-in-out;
+    }
+
+    /* Animasi kilau/lonjakan saat jawaban benar */
+    @keyframes correctPulse {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    .animate-correct {
+      animation: correctPulse 0.35s ease-out;
+    }
+
+    /* Animasi mengambang halus untuk dekorasi lobby */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-7px); }
+    }
+    .animate-float {
+      animation: floatSlow 4.2s ease-in-out infinite;
+    }
+
+    /* Animasi popup delta skor/waktu */
+    @keyframes floatUpFade {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(0.95);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-28px) scale(1.1);
+      }
+    }
+    .animate-delta {
+      animation: floatUpFade 0.85s ease-out forwards;
+    }
+
+    /* Partikel konfeti mini saat streak */
+    @keyframes confettiFall {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--tx), var(--ty)) rotate(360deg) scale(0.4);
+      }
+    }
+    .confetti-particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 60;
+      animation: confettiFall 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Mencegah seleksi teks saat menggeser kartu (Drag & Drop) */
+    .draggable-card {
+      touch-action: pan-y;
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: grab;
+    }
+    .draggable-card:active {
+      cursor: grabbing;
     }
   </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-slate-950 flex flex-col">
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-teal-400 selection:text-slate-950 flex flex-col relative">
+
+  <!-- Latar Belakang Grid Heksagonal Molekuler Halus -->
+  <div class="fixed inset-0 pointer-events-none opacity-20 z-0">
+    <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="bioHexPattern" width="56" height="56" patternUnits="userSpaceOnUse">
+          <path d="M28 0 L56 14 L56 42 L28 56 L0 42 L0 14 Z" fill="none" stroke="#14b8a6" stroke-width="0.8" />
+          <circle cx="28" cy="28" r="1.5" fill="#06b6d4" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#bioHexPattern)" />
+    </svg>
+  </div>
 
   <!-- ===================================================================== -->
-  <!-- HEADER APLIKASI LABORATORIUM DIGITAL                                  -->
+  <!-- HEADER NAVIGASI ATAS                                                  -->
   <!-- ===================================================================== -->
-  <header class="sticky top-0 z-30 border-b border-slate-800/90 bg-slate-950/90 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
-      <!-- Identitas Aplikasi -->
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-teal-500 to-emerald-500 flex items-center justify-center text-slate-950 shadow-lg shadow-cyan-500/20 shrink-0">
-          <!-- Ikon Mikroskop / Target Bidik SVG -->
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-            <circle cx="12" cy="12" r="7" />
-            <circle cx="12" cy="12" r="2.5" fill="currentColor" />
-            <line x1="12" y1="2" x2="12" y2="5" />
-            <line x1="12" y1="19" x2="12" y2="22" />
-            <line x1="2" y1="12" x2="5" y2="12" />
-            <line x1="19" y1="12" x2="22" y2="12" />
+  <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/90">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <!-- Identitas Game -->
+      <button type="button" id="brand-home-btn" class="flex items-center gap-3 text-left group focus:outline-none">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-slate-950 shadow-lg shadow-teal-500/20 group-hover:scale-105 transition-transform shrink-0">
+          <!-- Ikon Bakteriofag Kustom -->
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polygon points="12,2 18,5.5 18,11.5 12,15 6,11.5 6,5.5" />
+            <line x1="12" y1="15" x2="12" y2="19" />
+            <polyline points="12,19 7,22" />
+            <polyline points="12,19 17,22" />
+            <polyline points="12,18 5,20" />
+            <polyline points="12,18 19,20" />
           </svg>
         </div>
-        <div class="truncate">
-          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white truncate">
-            Detektor Warna &amp; Penanda Posisi Virus
-          </h1>
-          <p class="text-xs text-slate-400 hidden sm:block">
-            Analisis Piksel Kanvas Interaktif, Penanda Koordinat &amp; Pelacakan Objek Real-Time
-          </p>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-display font-extrabold text-base sm:text-lg tracking-tight text-white">BioSort</span>
+            <span class="hidden sm:inline-block px-2 py-0.5 rounded-md bg-teal-500/15 border border-teal-500/30 text-teal-300 text-[10px] font-bold uppercase tracking-wider">
+              Biologi Kelas X
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Tantangan Peranan Virus</p>
         </div>
-      </div>
+      </button>
 
-      <!-- Status Sumber & Dimensi Kanvas -->
-      <div class="flex items-center gap-2.5 shrink-0">
-        <span id="canvas-dim-badge" class="hidden md:inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-slate-900 text-slate-300 border border-slate-800">
-          960 &times; 540 px
-        </span>
+      <!-- Kontrol Header Kanan: Ringkasan Materi & Tombol Audio Mute/Unmute -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button type="button" id="header-guide-btn"
+          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs sm:text-sm font-semibold text-cyan-300 transition-colors">
+          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span>Ringkasan Materi</span>
+        </button>
 
-        <div id="source-status-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-500/40">
-          <span id="source-status-dot" class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-          <span id="source-status-text">Simulasi Virus Aktif</span>
-        </div>
+        <button type="button" id="mute-toggle-btn" aria-label="Suara Efek Aktif" title="Aktifkan/Matikan Suara"
+          class="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-200 transition-colors">
+          <!-- Ikon Suara Aktif -->
+          <svg id="icon-sound-on" class="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+          <!-- Ikon Suara Mute -->
+          <svg id="icon-sound-off" class="w-5 h-5 text-rose-400 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+          </svg>
+        </button>
       </div>
     </div>
   </header>
 
   <!-- ===================================================================== -->
-  <!-- NOTIFIKASI TOAST NON-BLOCKING                                         -->
+  <!-- WADAH UTAMA APLIKASI                                                  -->
   <!-- ===================================================================== -->
-  <div id="toast-container" aria-live="polite" class="fixed bottom-5 right-5 z-50 pointer-events-none flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0">
-    <div id="toast-box" class="hidden pointer-events-auto rounded-2xl bg-slate-900/95 backdrop-blur-md border border-cyan-500/50 px-4 py-3.5 shadow-2xl flex items-center gap-3 text-xs sm:text-sm text-slate-100 transition-all">
-      <span id="toast-swatch" class="w-4 h-4 rounded-md bg-cyan-400 shrink-0 border border-white/30"></span>
-      <span id="toast-text" class="flex-1 font-medium">Notifikasi</span>
+  <main class="relative z-10 flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col justify-center">
+
+    <!-- =================================================================== -->
+    <!-- LAYAR 1: LOBBY / MENU AWAL                                          -->
+    <!-- =================================================================== -->
+    <section id="screen-lobby" class="space-y-8 sm:space-y-10">
+      <!-- Hero Banner Laboratorium Virologi -->
+      <div class="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-teal-950/80 border border-slate-800 p-6 sm:p-10 shadow-2xl">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div class="lg:col-span-8 space-y-4">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-500/15 border border-teal-400/30 text-teal-300 text-xs font-bold">
+              <span class="w-2 h-2 rounded-full bg-teal-400 animate-ping"></span>
+              Simulasi Klasifikasi Laboratorium Virologi • Kurikulum SMA Kelas X
+            </div>
+            <h1 class="font-display text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+              BioSort: <span class="bg-gradient-to-r from-teal-300 via-cyan-300 to-emerald-300 bg-clip-text text-transparent">Tantangan Peranan Virus</span>
+            </h1>
+            <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
+              Uji ketelitian analisismu sebagai peneliti virologi! Klasifikasikan 24 studi kasus nyata seputar virus dan bioteknologi ke dalam kategori <strong class="text-emerald-400">Menguntungkan</strong> atau <strong class="text-rose-400">Merugikan</strong>.
+            </p>
+            <div class="pt-1 flex flex-wrap items-center gap-3">
+              <button type="button" id="lobby-guide-btn"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs sm:text-sm font-semibold text-slate-200 transition-colors">
+                <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Buka Ringkasan Materi Sebelum Bermain
+              </button>
+            </div>
+          </div>
+
+          <!-- Ilustrasi SVG Kustom Lab & Virus -->
+          <div class="lg:col-span-4 flex justify-center">
+            <div class="w-52 h-52 sm:w-60 sm:h-60 rounded-3xl bg-slate-950/80 border border-teal-500/25 p-5 flex items-center justify-center shadow-inner animate-float">
+              <svg viewBox="0 0 200 200" class="w-full h-full" aria-label="Ilustrasi Mikroskop dan Virus">
+                <defs>
+                  <linearGradient id="labGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#14b8a6" />
+                    <stop offset="100%" stop-color="#06b6d4" />
+                  </linearGradient>
+                  <linearGradient id="labGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f43f5e" />
+                    <stop offset="100%" stop-color="#fb7185" />
+                  </linearGradient>
+                </defs>
+                <!-- Lingkaran Petri Dish -->
+                <circle cx="100" cy="100" r="84" fill="#0f172a" stroke="#1e293b" stroke-width="3" />
+                <circle cx="100" cy="100" r="74" fill="none" stroke="#14b8a6" stroke-opacity="0.25" stroke-width="1.5" stroke-dasharray="6,4" />
+                <!-- Bakteriofag Hijau/Teal (Menguntungkan) -->
+                <g transform="translate(36, 42)">
+                  <polygon points="32,4 54,17 54,43 32,56 10,43 10,17" fill="url(#labGrad1)" />
+                  <path d="M25,22 C37,26 25,34 37,38" fill="none" stroke="#fef08a" stroke-width="3" stroke-linecap="round" />
+                  <rect x="27" y="56" width="10" height="30" rx="2" fill="#0d9488" />
+                  <polyline points="27,86 10,106" stroke="#2dd4bf" stroke-width="3" stroke-linecap="round" />
+                  <polyline points="37,86 54,106" stroke="#2dd4bf" stroke-width="3" stroke-linecap="round" />
+                  <polyline points="29,86 16,110" stroke="#5eead4" stroke-width="2.5" stroke-linecap="round" />
+                  <polyline points="35,86 48,110" stroke="#5eead4" stroke-width="2.5" stroke-linecap="round" />
+                </g>
+                <!-- Virus Patogen Bulat Merah (Merugikan) -->
+                <g transform="translate(112, 86)">
+                  <circle cx="32" cy="32" r="20" fill="url(#labGrad2)" />
+                  <circle cx="32" cy="32" r="11" fill="#4c0519" />
+                  <line x1="32" y1="4" x2="32" y2="12" stroke="#fda4af" stroke-width="3" stroke-linecap="round" />
+                  <circle cx="32" cy="4" r="2.5" fill="#fda4af" />
+                  <line x1="32" y1="52" x2="32" y2="60" stroke="#fda4af" stroke-width="3" stroke-linecap="round" />
+                  <circle cx="32" cy="60" r="2.5" fill="#fda4af" />
+                  <line x1="4" y1="32" x2="12" y2="32" stroke="#fda4af" stroke-width="3" stroke-linecap="round" />
+                  <circle cx="4" cy="32" r="2.5" fill="#fda4af" />
+                  <line x1="52" y1="32" x2="60" y2="32" stroke="#fda4af" stroke-width="3" stroke-linecap="round" />
+                  <circle cx="60" cy="32" r="2.5" fill="#fda4af" />
+                  <line x1="12" y1="12" x2="18" y2="18" stroke="#fda4af" stroke-width="3" stroke-linecap="round" />
+                  <line x1="46" y1="46" x2="52" y2="52" stroke="#fda4af" stroke-width="3" stroke-linecap="round" />
+                  <line x1="52" y1="12" x2="46" y2="18" stroke="#fda4af" stroke-width="3" stroke-linecap="round" />
+                  <line x1="18" y1="46" x2="12" y2="52" stroke="#fda4af" stroke-width="3" stroke-linecap="round" />
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pilihan 2 Mode Permainan -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Kartu Mode Klasik -->
+        <div class="rounded-3xl bg-slate-900 border border-slate-800 hover:border-teal-500/60 p-6 sm:p-8 shadow-xl flex flex-col justify-between space-y-6 transition-all group">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-xl bg-teal-500/15 text-teal-300 border border-teal-500/30 text-xs font-bold uppercase tracking-wider">
+                Mode Belajar Mendalam
+              </span>
+              <span class="text-xs font-mono text-slate-400">15 Kartu • 3 Nyawa</span>
+            </div>
+            <h2 class="font-display text-2xl font-extrabold text-white group-hover:text-teal-300 transition-colors">
+              Mode Klasik
+            </h2>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              Selesaikan 15 kartu studi kasus tanpa batas waktu. Kamu dibekali <strong class="text-teal-300">3 Nyawa Bio-Shield</strong> dan penjelasan ilmiah lengkap setiap kali menjawab agar pemahaman konsep semakin matang.
+            </p>
+            <ul class="space-y-2 text-xs text-slate-400 pt-1">
+              <li class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
+                <span>Tanpa tekanan waktu (cocok untuk diskusi & latihan pemahaman)</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
+                <span>Pengganda skor beruntun (Streak Combo hingga x3)</span>
+              </li>
+            </ul>
+          </div>
+          <button type="button" id="start-classic-btn"
+            class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-extrabold text-sm sm:text-base shadow-lg shadow-teal-500/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2">
+            <span>Mulai Mode Klasik</span>
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Kartu Mode Tantangan Cepat (Time Attack) -->
+        <div class="rounded-3xl bg-slate-900 border border-slate-800 hover:border-amber-500/60 p-6 sm:p-8 shadow-xl flex flex-col justify-between space-y-6 transition-all group">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-bold uppercase tracking-wider">
+                Mode Adu Kecepatan
+              </span>
+              <span class="text-xs font-mono text-slate-400">60 Detik • +2s / -3s</span>
+            </div>
+            <h2 class="font-display text-2xl font-extrabold text-white group-hover:text-amber-300 transition-colors">
+              Tantangan Cepat (Time Attack)
+            </h2>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              Sortir kartu sebanyak-banyaknya dalam <strong class="text-amber-300">60 detik</strong>! Jawaban benar berturut-turut memberi bonus <strong class="text-emerald-400">+2 detik</strong>, sedangkan jawaban salah mengurangi <strong class="text-rose-400">-3 detik</strong>.
+            </p>
+            <ul class="space-y-2 text-xs text-slate-400 pt-1">
+              <li class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                <span>Kartu berputar otomatis dari seluruh bank 24 soal</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                <span>Uji refleks dan ketepatan identifikasi di bawah tekanan waktu</span>
+              </li>
+            </ul>
+          </div>
+          <button type="button" id="start-timeattack-btn"
+            class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-sm sm:text-base shadow-lg shadow-amber-500/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2">
+            <span>Mulai Tantangan Cepat</span>
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Panduan Kontrol Singkat -->
+      <div class="rounded-2xl bg-slate-900/70 border border-slate-800/90 px-5 py-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-200">Klik Tombol</span>
+          <span>Pilih Menguntungkan / Merugikan</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-200">Geser Kartu</span>
+          <span>Tarik ke kiri atau kanan (Mouse / Sentuh)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-200">&larr; / A</span>
+          <span>&amp;</span>
+          <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-200">&rarr; / D</span>
+          <span>Pintasan Keyboard</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- LAYAR 2: ARENA PERMAINAN UTAMA                                      -->
+    <!-- =================================================================== -->
+    <section id="screen-game" class="hidden space-y-5 sm:space-y-6">
+      
+      <!-- HUD Atas (Skor, Streak, Nyawa/Timer, Progress Bar) -->
+      <div class="rounded-2xl bg-slate-900/95 border border-slate-800 p-4 sm:p-5 shadow-xl space-y-3.5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          
+          <!-- Kiri: Mode & Skor -->
+          <div class="flex items-center gap-3 sm:gap-5">
+            <div class="relative">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Skor</span>
+              <span id="hud-score" class="font-mono text-xl sm:text-2xl font-extrabold text-white">0</span>
+              <span id="score-delta-anchor" class="pointer-events-none absolute -top-2 left-full ml-1.5"></span>
+            </div>
+
+            <div class="h-8 w-px bg-slate-800"></div>
+
+            <!-- Streak / Combo -->
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Streak</span>
+              <div class="flex items-center gap-1.5">
+                <span id="hud-streak" class="font-mono text-lg sm:text-xl font-extrabold text-cyan-400">0</span>
+                <span id="hud-multiplier" class="px-2 py-0.5 rounded-md bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-mono text-xs font-bold">
+                  x1
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tengah / Kanan: Nyawa (Klasik) ATAU Timer (Time Attack) + Tombol Keluar -->
+          <div class="flex items-center gap-3 sm:gap-4">
+            <!-- Wadah Nyawa Bio-Shield (Mode Klasik) -->
+            <div id="hud-lives-box" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800">
+              <span class="text-xs font-semibold text-slate-400 mr-1 hidden sm:inline">Bio-Shield:</span>
+              <div id="hud-lives-icons" class="flex items-center gap-1"></div>
+            </div>
+
+            <!-- Wadah Timer Hitung Mundur (Mode Time Attack) -->
+            <div id="hud-timer-box" class="hidden relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-950 border border-amber-500/40">
+              <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span id="hud-timer-text" class="font-mono text-lg font-extrabold text-amber-300">60.0s</span>
+              <span id="timer-delta-anchor" class="pointer-events-none absolute -bottom-5 right-0"></span>
+            </div>
+
+            <!-- Tombol Keluar ke Menu -->
+            <button type="button" id="quit-game-btn"
+              class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-rose-950 hover:text-rose-300 border border-slate-700 text-xs font-semibold text-slate-300 transition-colors">
+              Keluar
+            </button>
+          </div>
+        </div>
+
+        <!-- Baris Progress -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span id="hud-progress-label" class="font-semibold">Soal 1 dari 15</span>
+            <span id="hud-mode-label" class="font-mono text-teal-400">Mode Klasik</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden border border-slate-800/80">
+            <div id="hud-progress-bar" class="h-full bg-gradient-to-r from-teal-500 via-cyan-400 to-emerald-400 w-0 transition-all duration-300"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bar Konfirmasi Keluar Inline (Pengganti confirm() bawaan browser) -->
+      <div id="quit-confirm-bar" class="hidden rounded-2xl bg-amber-950/85 border border-amber-500/40 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+        <span class="text-xs sm:text-sm text-amber-100 font-medium">
+          Yakin ingin mengakhiri sesi permainan ini dan kembali ke menu utama?
+        </span>
+        <div class="flex items-center gap-2">
+          <button type="button" id="confirm-quit-yes" class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold">
+            Ya, Keluar
+          </button>
+          <button type="button" id="confirm-quit-no" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">
+            Lanjut Bermain
+          </button>
+        </div>
+      </div>
+
+      <!-- Arena Penyortiran 3 Kolom: Zona Kiri (Menguntungkan) | Kartu Tengah | Zona Kanan (Merugikan) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
+        
+        <!-- ZONA KIRI: MENGUNTUNGKAN (Desktop Kiri / Mobile Bawah Kiri) -->
+        <div class="order-2 lg:order-1 lg:col-span-3 flex">
+          <button type="button" id="btn-choose-beneficial"
+            class="w-full rounded-3xl border-2 border-emerald-500/40 bg-emerald-950/35 hover:bg-emerald-900/50 hover:border-emerald-400 active:scale-[0.98] p-4 sm:p-6 flex flex-col items-center justify-center text-center gap-3 transition-all shadow-lg group">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <div>
+              <div class="font-display font-extrabold text-base sm:text-lg tracking-wide text-emerald-300">
+                MENGUNTUNGKAN
+              </div>
+              <p class="text-[11px] sm:text-xs text-emerald-200/75 mt-1">
+                Bioteknologi, Vaksin, Terapi &amp; Biokontrol
+              </p>
+            </div>
+            <span class="hidden sm:inline-block px-2.5 py-1 rounded-lg bg-emerald-950/90 border border-emerald-500/30 font-mono text-[11px] text-emerald-300">
+              &larr; Panah Kiri / A
+            </span>
+          </button>
+        </div>
+
+        <!-- KARTU STUDI KASUS DI TENGAH -->
+        <div class="order-1 lg:order-2 lg:col-span-6 flex flex-col justify-center">
+          <div id="case-card-wrapper" class="relative w-full">
+            <article id="case-card"
+              class="draggable-card relative rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-700/90 p-6 sm:p-8 shadow-2xl space-y-5 transition-colors">
+              
+              <!-- Stempel Overlay Dinamis Saat Kartu Digeser (Drag) -->
+              <div id="drag-stamp-beneficial" class="pointer-events-none opacity-0 absolute top-5 left-5 px-3.5 py-1.5 rounded-xl border-2 border-emerald-400 bg-emerald-950/90 text-emerald-300 font-display font-extrabold text-sm tracking-wider -rotate-12 transition-opacity">
+                MENGUNTUNGKAN
+              </div>
+              <div id="drag-stamp-harmful" class="pointer-events-none opacity-0 absolute top-5 right-5 px-3.5 py-1.5 rounded-xl border-2 border-rose-400 bg-rose-950/90 text-rose-300 font-display font-extrabold text-sm tracking-wider rotate-12 transition-opacity">
+                MERUGIKAN
+              </div>
+
+              <!-- Header Kartu: Sub-Kategori & Nomor -->
+              <div class="flex items-center justify-between gap-2">
+                <span id="card-category-badge" class="px-3 py-1 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-bold">
+                  Bidang Kesehatan
+                </span>
+                <span class="text-[11px] font-mono text-slate-500">
+                  &larr; Geser / Pilih &rarr;
+                </span>
+              </div>
+
+              <!-- Ikon SVG Domain Kartu -->
+              <div class="flex justify-center py-1">
+                <div id="card-icon-container" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-cyan-300 shadow-inner">
+                  <!-- Diisi secara dinamis melalui JavaScript -->
+                </div>
+              </div>
+
+              <!-- Judul & Deskripsi Kasus -->
+              <div class="text-center space-y-2.5">
+                <h2 id="card-title" class="font-display text-xl sm:text-2xl font-extrabold text-white leading-snug">
+                  Nama Virus / Teknologi
+                </h2>
+                <p id="card-description" class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                  Deskripsi singkat mekanisme biologis atau dampak kasus.
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <!-- ZONA KANAN: MERUGIKAN (Desktop Kanan / Mobile Bawah Kanan) -->
+        <div class="order-3 lg:order-3 lg:col-span-3 flex">
+          <button type="button" id="btn-choose-harmful"
+            class="w-full rounded-3xl border-2 border-rose-500/40 bg-rose-950/35 hover:bg-rose-900/50 hover:border-rose-400 active:scale-[0.98] p-4 sm:p-6 flex flex-col items-center justify-center text-center gap-3 transition-all shadow-lg group">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-rose-500/20 border border-rose-400/40 text-rose-300 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <div class="font-display font-extrabold text-base sm:text-lg tracking-wide text-rose-300">
+                MERUGIKAN
+              </div>
+              <p class="text-[11px] sm:text-xs text-rose-200/75 mt-1">
+                Patogen Manusia, Hewan &amp; Tumbuhan
+              </p>
+            </div>
+            <span class="hidden sm:inline-block px-2.5 py-1 rounded-lg bg-rose-950/90 border border-rose-500/30 font-mono text-[11px] text-rose-300">
+              Panah Kanan / D &rarr;
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Panel Umpan Balik Edukatif Langsung (Muncul Setelah Menjawab) -->
+      <div id="feedback-panel" class="hidden rounded-3xl border p-5 sm:p-6 shadow-2xl space-y-4 transition-all">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div id="feedback-icon-badge" class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"></div>
+            <div>
+              <h3 id="feedback-status-title" class="font-display font-extrabold text-lg sm:text-xl">
+                Benar!
+              </h3>
+              <p id="feedback-classification-label" class="text-xs font-semibold opacity-90">
+                Kategori: Menguntungkan
+              </p>
+            </div>
+          </div>
+
+          <button type="button" id="next-card-btn"
+            class="px-5 py-3 rounded-xl font-bold text-sm bg-white text-slate-950 hover:bg-slate-200 shadow-md transition-all flex items-center justify-center gap-2 shrink-0">
+            <span id="next-card-btn-label">Kartu Berikutnya</span>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="rounded-2xl bg-slate-950/65 border border-white/10 p-4 text-xs sm:text-sm text-slate-200 leading-relaxed">
+          <strong class="text-cyan-300">Penjelasan Ilmiah:</strong>
+          <span id="feedback-explanation-text"></span>
+        </div>
+
+        <!-- Bar Auto-Advance Khusus Mode Time Attack -->
+        <div id="timeattack-auto-bar-wrap" class="hidden space-y-1">
+          <div class="flex justify-between text-[11px] text-slate-300">
+            <span>Lanjut otomatis ke kartu berikutnya...</span>
+            <span>Tekan Spasi untuk lewati</span>
+          </div>
+          <div class="w-full h-1.5 rounded-full bg-slate-950 overflow-hidden">
+            <div id="timeattack-auto-bar" class="h-full bg-amber-400 w-full transition-none"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- LAYAR 3: HASIL AKHIR & EVALUASI PEMBELAJARAN                        -->
+    <!-- =================================================================== -->
+    <section id="screen-results" class="hidden space-y-8">
+      <!-- Kartu Ringkasan Skor & Gelar Peringkat -->
+      <div class="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-teal-950/90 border border-teal-500/30 p-6 sm:p-10 shadow-2xl space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-800">
+          <div class="space-y-2">
+            <span id="result-mode-badge" class="inline-block px-3 py-1 rounded-lg bg-teal-500/20 text-teal-300 text-xs font-bold uppercase tracking-wider">
+              Hasil Mode Klasik
+            </span>
+            <h2 class="font-display text-2xl sm:text-4xl font-extrabold text-white">
+              Gelar Peringkat: <span id="result-rank-title" class="text-teal-300">Master Virologi</span>
+            </h2>
+            <p id="result-rank-subtitle" class="text-sm text-slate-300 max-w-2xl">
+              Analisis biologismu sangat tajam! Kamu berhasil mengidentifikasi sebagian besar peranan virus dengan akurat.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-3 shrink-0">
+            <button type="button" id="play-again-btn"
+              class="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-extrabold text-sm shadow-lg transition-all">
+              Main Lagi &#8634;
+            </button>
+            <button type="button" id="back-to-menu-btn"
+              class="px-5 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm transition-all">
+              Kembali ke Menu
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid Statistik -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
+          <div class="rounded-2xl bg-slate-950/80 border border-slate-800 p-4 text-center">
+            <span class="text-xs text-slate-400 block">Total Skor</span>
+            <span id="stat-total-score" class="font-mono text-2xl sm:text-3xl font-extrabold text-white mt-1 block">0</span>
+          </div>
+          <div class="rounded-2xl bg-slate-950/80 border border-emerald-500/30 p-4 text-center">
+            <span class="text-xs text-emerald-300 block">Jawaban Benar</span>
+            <span id="stat-correct-count" class="font-mono text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1 block">0</span>
+          </div>
+          <div class="rounded-2xl bg-slate-950/80 border border-rose-500/30 p-4 text-center">
+            <span class="text-xs text-rose-300 block">Jawaban Salah</span>
+            <span id="stat-wrong-count" class="font-mono text-2xl sm:text-3xl font-extrabold text-rose-400 mt-1 block">0</span>
+          </div>
+          <div class="rounded-2xl bg-slate-950/80 border border-cyan-500/30 p-4 text-center">
+            <span class="text-xs text-cyan-300 block">Akurasi</span>
+            <span id="stat-accuracy" class="font-mono text-2xl sm:text-3xl font-extrabold text-cyan-400 mt-1 block">0%</span>
+          </div>
+          <div class="col-span-2 sm:col-span-1 rounded-2xl bg-slate-950/80 border border-amber-500/30 p-4 text-center">
+            <span class="text-xs text-amber-300 block">Streak Tertinggi</span>
+            <span id="stat-best-streak" class="font-mono text-2xl sm:text-3xl font-extrabold text-amber-400 mt-1 block">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daftar Review Kartu & Pembahasan -->
+      <div class="rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-xl space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+          <div>
+            <h3 class="font-display text-xl sm:text-2xl font-bold text-white">
+              Evaluasi &amp; Pembahasan Kartu
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">
+              Tinjau kembali setiap kartu yang muncul beserta mekanisme biologisnya.
+            </p>
+          </div>
+
+          <!-- Filter Review: Semua vs Jawaban Salah -->
+          <div class="inline-flex p-1 rounded-xl bg-slate-950 border border-slate-800 self-start">
+            <button type="button" id="filter-review-all"
+              class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-teal-500 text-slate-950 transition-all">
+              Semua (<span id="count-review-all">0</span>)
+            </button>
+            <button type="button" id="filter-review-wrong"
+              class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition-all">
+              Jawaban Salah (<span id="count-review-wrong">0</span>)
+            </button>
+          </div>
+        </div>
+
+        <div id="review-list-container" class="space-y-4">
+          <!-- Diisi melalui JavaScript -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL REFERENSI CEPAT: RINGKASAN MATERI PERANAN VIRUS                 -->
+  <!-- ===================================================================== -->
+  <div id="guide-modal" role="dialog" aria-modal="true" aria-labelledby="guide-modal-title"
+    class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm p-4 sm:p-6 overflow-y-auto flex items-center justify-center">
+    <div class="w-full max-w-4xl rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden my-auto">
+      <!-- Header Modal -->
+      <div class="px-6 py-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-teal-400">Referensi Cepat Biologi SMA Kelas X</span>
+          <h2 id="guide-modal-title" class="font-display text-xl sm:text-2xl font-extrabold text-white mt-0.5">
+            Ringkasan Peranan Virus dalam Kehidupan
+          </h2>
+        </div>
+        <button type="button" id="close-guide-btn" aria-label="Tutup Ringkasan Materi"
+          class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Isi Modal -->
+      <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto text-sm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Kolom Menguntungkan -->
+          <div class="rounded-2xl bg-emerald-950/35 border border-emerald-500/30 p-5 space-y-4">
+            <div class="flex items-center gap-2.5 border-b border-emerald-500/20 pb-3">
+              <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold">+</span>
+              <h3 class="font-display font-bold text-lg text-emerald-300">Peranan Virus Menguntungkan</h3>
+            </div>
+            <ul class="space-y-3 text-slate-300 text-xs sm:text-sm leading-relaxed">
+              <li>
+                <strong class="text-emerald-300">1. Bidang Medis &amp; Farmasi:</strong><br />
+                Pembuatan <em>vaksin</em> (konvensional &amp; vektor adenovirus), <em>terapi fag</em> menggunakan Bakteriofag T4 untuk bakteri kebal antibiotik, <em>virus onkolitik</em> penghancur sel tumor, serta produksi <em>interferon</em> dan <em>antitoksin</em>.
+              </li>
+              <li>
+                <strong class="text-emerald-300">2. Rekayasa Genetika:</strong><br />
+                <em>Retrovirus/Lentivirus</em> sebagai vektor terapi gen (memperbaiki kelainan genetik SCID), kloning gen protein terapeutik, serta <em>transduksi</em> untuk pemetaan kromosom bakteri.
+              </li>
+              <li>
+                <strong class="text-emerald-300">3. Pertanian &amp; Pengendalian Hama:</strong><br />
+                <em>Baculovirus</em> sebagai biopestisida ramah lingkungan pembasmi ulat hama, serta <em>Virus Myxoma</em> untuk mengendalikan populasi kelinci liar perusak lahan pertanian.
+              </li>
+            </ul>
+          </div>
+
+          <!-- Kolom Merugikan -->
+          <div class="rounded-2xl bg-rose-950/35 border border-rose-500/30 p-5 space-y-4">
+            <div class="flex items-center gap-2.5 border-b border-rose-500/20 pb-3">
+              <span class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-300 flex items-center justify-center font-bold">!</span>
+              <h3 class="font-display font-bold text-lg text-rose-300">Peranan Virus Merugikan</h3>
+            </div>
+            <ul class="space-y-3 text-slate-300 text-xs sm:text-sm leading-relaxed">
+              <li>
+                <strong class="text-rose-300">1. Patogen pada Manusia:</strong><br />
+                <em>HIV</em> (menyerang sel limfosit T CD4+), <em>Dengue Virus</em> (DBD via nyamuk Aedes aegypti), <em>Poliovirus</em> (kelumpuhan saraf motorik), <em>Hepatitis B</em> (sirosis/kanker hati), <em>Ebola</em> (demam berdarah berat), dan <em>Rabies</em>.
+              </li>
+              <li>
+                <strong class="text-rose-300">2. Patogen pada Hewan Ternak:</strong><br />
+                <em>Avian Influenza H5N1</em> (flu burung pada unggas), <em>Newcastle Disease Virus / NDV</em> (penyakit tetelo pada ayam), serta <em>Foot and Mouth Disease Virus / FMDV</em> (penyakit mulut dan kuku/PMK pada sapi).
+              </li>
+              <li>
+                <strong class="text-rose-300">3. Patogen pada Tumbuhan Budidaya:</strong><br />
+                <em>Tobacco Mosaic Virus / TMV</em> (bercak mosaik tembakau), <em>Virus Tungro</em> (padi kerdil via wereng hijau), <em>Citrus Tristeza Virus / CTV</em> (kerusakan floem jeruk), dan <em>TYLCV</em> (daun tomat keriting menguning).
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer Modal -->
+      <div class="px-6 py-4 bg-slate-950 border-t border-slate-800 flex justify-end">
+        <button type="button" id="close-guide-footer-btn"
+          class="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm transition-colors">
+          Mengerti, Tutup Ringkasan
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- KONTEN UTAMA (2 KOLOM DI DESKTOP, 1 KOLOM DI PONSEL)                  -->
-  <!-- ===================================================================== -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-      <!-- ================================================================= -->
-      <!-- KOLOM KIRI (8 KOLOM): DUAL MODE KANVAS, VIEWPORT & PELACAKAN       -->
-      <!-- ================================================================= -->
-      <section class="lg:col-span-8 space-y-4">
-
-        <!-- Bar Kontrol Sumber Kanvas (Dual Mode Switcher) -->
-        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-3 sm:p-4 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          
-          <!-- Tab Pilihan Sumber -->
-          <div class="inline-flex p-1 rounded-xl bg-slate-950 border border-slate-800 self-start sm:self-auto w-full sm:w-auto">
-            <button type="button" id="tab-simulasi" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow">
-              1. Simulasi Virus
-            </button>
-            <button type="button" id="tab-webcam" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-400 hover:text-white">
-              2. Kamera Webcam
-            </button>
-          </div>
-
-          <!-- Kontrol Khusus Mode Simulasi Virus -->
-          <div id="sim-controls" class="flex flex-wrap items-center gap-2">
-            <button type="button" id="btn-toggle-anim" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-100 transition-colors flex items-center gap-1.5">
-              <span id="anim-icon">⏸</span>
-              <span id="anim-label">Jeda Animasi</span>
-            </button>
-            <button type="button" id="btn-randomize-pos" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-cyan-300 transition-colors flex items-center gap-1.5">
-              <span>↻</span>
-              <span>Acak Posisi</span>
-            </button>
-          </div>
-
-          <!-- Kontrol Khusus Mode Kamera Webcam -->
-          <div id="webcam-controls" class="hidden flex-wrap items-center gap-2.5">
-            <button type="button" id="btn-toggle-webcam" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow transition-colors">
-              Mulai Kamera
-            </button>
-
-            <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-semibold text-slate-300 cursor-pointer select-none">
-              <input type="checkbox" id="chk-mirror" checked class="accent-cyan-500 w-3.5 h-3.5 rounded" />
-              <span>Cermin (Mirror)</span>
-            </label>
-
-            <select id="select-camera-device" aria-label="Pilih Perangkat Kamera" class="hidden px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 max-w-[170px]">
-            </select>
-          </div>
-        </div>
-
-        <!-- Kotak Pesan Error Kamera (Tersembunyi Secara Default) -->
-        <div id="webcam-error-box" role="alert" class="hidden rounded-2xl bg-rose-950/80 border border-rose-500/50 p-4 text-rose-100 shadow-lg">
-          <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-              !
-            </div>
-            <div class="flex-1 space-y-1">
-              <h3 id="webcam-error-title" class="text-sm font-bold text-rose-200">
-                Kendala Akses Kamera
-              </h3>
-              <p id="webcam-error-desc" class="text-xs text-rose-200/90 leading-relaxed">
-                Tidak dapat membuka kamera.
-              </p>
-              <p id="webcam-error-tip" class="text-[11px] text-rose-300/80">
-                Periksa izin kamera pada browser Anda.
-              </p>
-            </div>
-            <button type="button" id="btn-close-webcam-error" aria-label="Tutup pesan error" class="px-2 py-1 rounded-lg text-xs text-rose-300 hover:bg-rose-500/20">
-              Tutup
-            </button>
-          </div>
-        </div>
-
-        <!-- Viewport Kanvas Interaktif Utama -->
-        <div id="canvas-wrapper" style="aspect-ratio: 16 / 9;" class="relative w-full bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden select-none">
-          
-          <!-- Elemen Video Tersembunyi untuk Stream Webcam -->
-          <video id="webcam-video" autoplay playsinline muted class="hidden"></video>
-
-          <!-- Elemen Kanvas Utama -->
-          <canvas id="main-canvas" width="960" height="540" class="w-full h-full block cursor-crosshair touch-none"></canvas>
-
-          <!-- Overlay Petunjuk Singkat Saat Webcam Belum Dimulai -->
-          <div id="webcam-idle-overlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6">
-            <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400 mb-4">
-              <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h2 class="text-base sm:text-lg font-bold text-white mb-1.5">
-              Mode Kamera Webcam Siap
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-400 max-w-md mb-5 leading-relaxed">
-              Aktifkan kamera untuk menampilkan video secara real-time di kanvas, lalu klik benda berwarna apa pun untuk menyimpan warnanya dan menandai posisinya.
-            </p>
-            <button type="button" id="btn-overlay-start-cam" class="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg transition-all">
-              Aktifkan Kamera Sekarang
-            </button>
-          </div>
-        </div>
-
-        <!-- Legenda Spesimen (Mode Simulasi) -->
-        <div id="specimen-legend" class="rounded-2xl bg-slate-900/80 border border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <span class="font-semibold text-slate-400">Klik spesimen di kanvas:</span>
-          <div class="flex flex-wrap items-center gap-3">
-            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span>Coronavirus</span>
-            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span>Bakteriofag</span>
-            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></span>Adenovirus</span>
-            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></span>Influenza</span>
-            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]"></span>Filovirus</span>
-            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#06B6D4]"></span>Rabies</span>
-          </div>
-        </div>
-
-        <!-- Panel Pelacakan Warna Otomatis (Real-Time Object Color Tracking) -->
-        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 sm:p-5 shadow-lg space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="flex items-start gap-3">
-              <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-              </div>
-              <div>
-                <h2 class="text-sm font-bold text-white">Pelacakan Warna Otomatis (Real-Time)</h2>
-                <p class="text-xs text-slate-400">
-                  Lacak posisi benda dengan warna serupa secara otomatis menggunakan kotak pelacak &amp; titik pusat (centroid).
-                </p>
-              </div>
-            </div>
-
-            <!-- Sakelar Toggle Pelacakan -->
-            <button type="button" id="btn-toggle-tracking" role="switch" aria-checked="false" class="self-start sm:self-center inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 hover:border-cyan-500/60 transition-all">
-              <span id="tracking-switch-pill" class="relative inline-flex h-5 w-9 shrink-0 rounded-full bg-slate-700 transition-colors">
-                <span id="tracking-switch-knob" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-0.5 mt-0.5"></span>
-              </span>
-              <span id="tracking-switch-label" class="text-xs font-bold text-slate-300">Nonaktif</span>
-            </button>
-          </div>
-
-          <!-- Bar Detail Warna Dilacak & Slider Toleransi -->
-          <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 pt-3 border-t border-slate-800/80 items-center">
-            <!-- Info Target Warna -->
-            <div class="sm:col-span-6 flex items-center gap-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
-              <div id="tracked-color-swatch" class="w-9 h-9 rounded-lg bg-slate-800 border border-white/20 shrink-0"></div>
-              <div class="min-w-0 flex-1">
-                <div class="text-[11px] text-slate-400">Target Warna Dilacak:</div>
-                <div id="tracked-color-info" class="text-xs font-bold text-slate-200 truncate">
-                  Belum ada (klik virus di kanvas)
-                </div>
-              </div>
-            </div>
-
-            <!-- Slider Toleransi Warna -->
-            <div class="sm:col-span-6 space-y-1.5">
-              <div class="flex items-center justify-between text-xs">
-                <label for="slider-tolerance" class="font-semibold text-slate-300">Toleransi Kemiripan Warna</label>
-                <span id="tolerance-value-label" class="font-mono font-bold text-cyan-400">42</span>
-              </div>
-              <input id="slider-tolerance" type="range" min="10" max="110" value="42" class="w-full accent-cyan-500 cursor-pointer h-2 bg-slate-800 rounded-lg" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ================================================================= -->
-      <!-- KOLOM KANAN (4 KOLOM): PANEL MANAJEMEN WARNA & POSISI TERSIMPAN   -->
-      <!-- ================================================================= -->
-      <aside class="lg:col-span-4 rounded-3xl bg-slate-900 border border-slate-800 p-5 shadow-xl flex flex-col gap-4">
-        
-        <!-- Header Sidebar -->
-        <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-800">
-          <div>
-            <h2 class="text-base font-extrabold text-white">
-              Warna &amp; Posisi Tersimpan
-            </h2>
-            <p class="text-xs text-slate-400">
-              Klik titik mana pun pada kanvas untuk menandai
-            </p>
-          </div>
-          <span id="saved-count-badge" class="px-2.5 py-1 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-mono text-xs font-bold">
-            0 Titik
-          </span>
-        </div>
-
-        <!-- Tombol Aksi Global (Unduh PNG & Hapus Semua) -->
-        <div class="grid grid-cols-2 gap-2.5">
-          <button type="button" id="btn-download-png" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            <span>Unduh Kanvas (PNG)</span>
-          </button>
-
-          <button type="button" id="btn-clear-all" disabled class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-rose-950/80 hover:text-rose-300 hover:border-rose-500/40 disabled:opacity-40 disabled:pointer-events-none border border-slate-700 text-slate-300 font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            <span>Hapus Semua</span>
-          </button>
-        </div>
-
-        <!-- Daftar Item Penanda & Warna Tersimpan -->
-        <div id="markers-list-container" class="space-y-3 max-h-[540px] overflow-y-auto pr-1 custom-scrollbar">
-          <!-- State Kosong Default -->
-          <div id="empty-markers-state" class="rounded-2xl border border-dashed border-slate-800 bg-slate-950/60 p-8 text-center space-y-2.5">
-            <div class="w-11 h-11 rounded-xl bg-slate-900 border border-slate-800 mx-auto flex items-center justify-center text-slate-500">
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5" />
-              </svg>
-            </div>
-            <div class="text-xs font-bold text-slate-300">Belum Ada Penanda Tersimpan</div>
-            <p class="text-[11px] text-slate-500 leading-relaxed">
-              Arahkan kursor ke kanvas di sebelah kiri lalu <strong>klik spesimen virus</strong> (atau objek di webcam) untuk menyimpan warna dan menandai koordinatnya.
-            </p>
-          </div>
-        </div>
-
-      </aside>
-    </div>
-  </main>
-
-  <!-- ===================================================================== -->
-  <!-- LOGIKA JAVASCRIPT LENGKAP                                             -->
+  <!-- LOGIKA JAVASCRIPT GAME BIOSORT                                        -->
   <!-- ===================================================================== -->
   <script>
     // -------------------------------------------------------------------------
-    // 1. INISIALISASI ELEMEN DOM & DUAL CANVAS (BUFFER BERSIH + TAMPILAN)
+    // 1. SINTESIS EFEK SUARA WEB AUDIO API (TANPA FILE AUDIO EKSTERNAL)
     // -------------------------------------------------------------------------
-    const canvasWrapper = document.getElementById('canvas-wrapper');
-    const mainCanvas = document.getElementById('main-canvas');
-    const ctx = mainCanvas.getContext('2d', { willReadFrequently: true });
+    class BioSoundFX {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
 
-    // Kanvas penyangga (offscreen) berisi frame bersih (tanpa garis bidik/penanda)
-    // agar pembacaan warna getImageData dan pelacakan warna 100% akurat.
-    const bufferCanvas = document.createElement('canvas');
-    bufferCanvas.width = mainCanvas.width;
-    bufferCanvas.height = mainCanvas.height;
-    const bufferCtx = bufferCanvas.getContext('2d', { willReadFrequently: true });
+      ensureContext() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            this.ctx = new AudioCtx();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
 
-    const videoEl = document.getElementById('webcam-video');
+      playTone(freq, type, duration, startTimeOffset = 0, volume = 0.14) {
+        if (this.muted) return;
+        this.ensureContext();
+        if (!this.ctx) return;
 
-    // Elemen UI Navigasi & Kontrol
-    const tabSimulasi = document.getElementById('tab-simulasi');
-    const tabWebcam = document.getElementById('tab-webcam');
-    const simControls = document.getElementById('sim-controls');
-    const webcamControls = document.getElementById('webcam-controls');
-    const specimenLegend = document.getElementById('specimen-legend');
-    const webcamIdleOverlay = document.getElementById('webcam-idle-overlay');
+        const now = this.ctx.currentTime + startTimeOffset;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
 
-    const btnToggleAnim = document.getElementById('btn-toggle-anim');
-    const animIcon = document.getElementById('anim-icon');
-    const animLabel = document.getElementById('anim-label');
-    const btnRandomizePos = document.getElementById('btn-randomize-pos');
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
 
-    const btnToggleWebcam = document.getElementById('btn-toggle-webcam');
-    const btnOverlayStartCam = document.getElementById('btn-overlay-start-cam');
-    const chkMirror = document.getElementById('chk-mirror');
-    const selectCameraDevice = document.getElementById('select-camera-device');
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(volume, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
-    const webcamErrorBox = document.getElementById('webcam-error-box');
-    const webcamErrorTitle = document.getElementById('webcam-error-title');
-    const webcamErrorDesc = document.getElementById('webcam-error-desc');
-    const webcamErrorTip = document.getElementById('webcam-error-tip');
-    const btnCloseWebcamError = document.getElementById('btn-close-webcam-error');
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
 
-    const sourceStatusBadge = document.getElementById('source-status-badge');
-    const sourceStatusDot = document.getElementById('source-status-dot');
-    const sourceStatusText = document.getElementById('source-status-text');
-    const canvasDimBadge = document.getElementById('canvas-dim-badge');
+        osc.start(now);
+        osc.stop(now + duration + 0.02);
+      }
 
-    // Elemen Pelacakan Warna Otomatis
-    const btnToggleTracking = document.getElementById('btn-toggle-tracking');
-    const trackingSwitchPill = document.getElementById('tracking-switch-pill');
-    const trackingSwitchKnob = document.getElementById('tracking-switch-knob');
-    const trackingSwitchLabel = document.getElementById('tracking-switch-label');
-    const trackedColorSwatch = document.getElementById('tracked-color-swatch');
-    const trackedColorInfo = document.getElementById('tracked-color-info');
-    const sliderTolerance = document.getElementById('slider-tolerance');
-    const toleranceValueLabel = document.getElementById('tolerance-value-label');
+      playClick() {
+        this.playTone(520, 'sine', 0.08, 0, 0.1);
+      }
 
-    // Elemen Panel Daftar Tersimpan
-    const savedCountBadge = document.getElementById('saved-count-badge');
-    const btnDownloadPng = document.getElementById('btn-download-png');
-    const btnClearAll = document.getElementById('btn-clear-all');
-    const markersListContainer = document.getElementById('markers-list-container');
-    const emptyMarkersState = document.getElementById('empty-markers-state');
+      playCorrect() {
+        this.playTone(587.33, 'triangle', 0.14, 0, 0.15);     // D5
+        this.playTone(880.00, 'triangle', 0.22, 0.08, 0.16);  // A5
+      }
 
-    // Elemen Toast
-    const toastBox = document.getElementById('toast-box');
-    const toastSwatch = document.getElementById('toast-swatch');
-    const toastText = document.getElementById('toast-text');
+      playStreak() {
+        this.playTone(523.25, 'triangle', 0.12, 0, 0.14);     // C5
+        this.playTone(659.25, 'triangle', 0.12, 0.07, 0.14);  // E5
+        this.playTone(783.99, 'triangle', 0.14, 0.14, 0.15);  // G5
+        this.playTone(1046.50, 'sine', 0.28, 0.21, 0.18);     // C6
+      }
+
+      playWrong() {
+        this.playTone(190, 'sawtooth', 0.18, 0, 0.12);
+        this.playTone(145, 'sawtooth', 0.24, 0.12, 0.12);
+      }
+
+      playFinish() {
+        this.playTone(523.25, 'triangle', 0.15, 0, 0.15);
+        this.playTone(659.25, 'triangle', 0.15, 0.1, 0.15);
+        this.playTone(783.99, 'triangle', 0.15, 0.2, 0.15);
+        this.playTone(1046.50, 'triangle', 0.35, 0.3, 0.18);
+      }
+    }
+
+    const soundFX = new BioSoundFX();
 
     // -------------------------------------------------------------------------
-    // 2. STATE GLOBAL APLIKASI
+    // 2. IKON SVG KUSTOM PER KATEGORI BIOLOGI
     // -------------------------------------------------------------------------
-    const state = {
-      mode: 'simulasi', // 'simulasi' | 'webcam'
-      isSimAnimating: true,
-      simTime: 0,
-      lastFrameTimestamp: performance.now(),
-
-      // State Webcam
-      isWebcamStreaming: false,
-      webcamStream: null,
-      isMirrored: true,
-      selectedDeviceId: '',
-
-      // State Kursor & Pratinjau Bidik
-      pointer: {
-        active: false,
-        x: 0,
-        y: 0,
-        hex: '#000000',
-        rgb: { r: 0, g: 0, b: 0 },
-        colorName: 'Hitam',
-      },
-
-      // Daftar Penanda & Warna Tersimpan
-      markers: [],
-      nextMarkerNumber: 1,
-
-      // State Pelacakan Warna Otomatis
-      trackingEnabled: false,
-      trackedMarkerId: null,
-      colorTolerance: 42,
-      trackingResult: null, // { minX, minY, maxX, maxY, cx, cy, pixelCount }
-
-      toastTimer: null,
+    const DOMAIN_ICONS = {
+      phage: `
+        <svg class="w-12 h-12 text-teal-400" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polygon points="24,4 36,11 36,23 24,30 12,23 12,11" />
+          <line x1="24" y1="30" x2="24" y2="38" />
+          <polyline points="24,38 14,44" />
+          <polyline points="24,38 34,44" />
+          <polyline points="24,36 10,40" />
+          <polyline points="24,36 38,40" />
+        </svg>`,
+      dna: `
+        <svg class="w-12 h-12 text-cyan-400" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M16 6 C32 14, 16 22, 32 30 C16 38, 32 42, 32 42" stroke-linecap="round" />
+          <path d="M32 6 C16 14, 32 22, 16 30 C32 38, 16 42, 16 42" stroke-linecap="round" />
+          <line x1="18" y1="12" x2="30" y2="12" />
+          <line x1="18" y1="24" x2="30" y2="24" />
+          <line x1="18" y1="36" x2="30" y2="36" />
+        </svg>`,
+      medical: `
+        <svg class="w-12 h-12 text-emerald-400" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5">
+          <rect x="8" y="14" width="32" height="24" rx="5" />
+          <path d="M18 14 V10 A2 2 0 0 1 20 8 H28 A2 2 0 0 1 30 10 V14" />
+          <line x1="24" y1="20" x2="24" y2="32" />
+          <line x1="18" y1="26" x2="30" y2="26" />
+        </svg>`,
+      plant: `
+        <svg class="w-12 h-12 text-lime-400" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M10 38 C10 18, 26 10, 38 10 C38 24, 30 38, 10 38 Z" />
+          <path d="M10 38 L28 20" stroke-linecap="round" />
+        </svg>`,
+      animal: `
+        <svg class="w-12 h-12 text-amber-400" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="24" cy="28" r="9" />
+          <circle cx="13" cy="18" r="3.5" />
+          <circle cx="20" cy="13" r="3.5" />
+          <circle cx="28" cy="13" r="3.5" />
+          <circle cx="35" cy="18" r="3.5" />
+        </svg>`,
+      pathogen: `
+        <svg class="w-12 h-12 text-rose-400" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="24" cy="24" r="11" />
+          <line x1="24" y1="5" x2="24" y2="13" stroke-linecap="round" />
+          <line x1="24" y1="35" x2="24" y2="43" stroke-linecap="round" />
+          <line x1="5" y1="24" x2="13" y2="24" stroke-linecap="round" />
+          <line x1="35" y1="24" x2="43" y2="24" stroke-linecap="round" />
+          <line x1="10.5" y1="10.5" x2="16.2" y2="16.2" stroke-linecap="round" />
+          <line x1="31.8" y1="31.8" x2="37.5" y2="37.5" stroke-linecap="round" />
+          <line x1="37.5" y1="10.5" x2="31.8" y2="16.2" stroke-linecap="round" />
+          <line x1="16.2" y1="31.8" x2="10.5" y2="37.5" stroke-linecap="round" />
+        </svg>`,
     };
 
     // -------------------------------------------------------------------------
-    // 3. DATA & GENERATOR 6 SPESIMEN VIRUS UNIK (MODE SIMULASI)
+    // 3. BANK DATA KURIKULUM BIOLOGI SMA KELAS X (24 KARTU TERKURASI)
     // -------------------------------------------------------------------------
-    const VIRUS_SPECIES = [
+    const VIRUS_CARDS_DB = [
+      // --- MENGUNTUNGKAN (11 KARTU) ---
       {
-        id: 'coronavirus',
-        name: 'Coronavirus',
-        baseHex: '#EF4444',
-        accentHex: '#FCA5A5',
-        darkHex: '#991B1B',
-        radius: 44,
+        id: 1,
+        title: 'Bakteriofag T4 dalam Terapi Fag',
+        category: 'Bidang Kesehatan',
+        icon: 'phage',
+        type: 'beneficial',
+        description: 'Dimanfaatkan untuk melisiskan bakteri patogen yang telah kebal (resisten) terhadap antibiotik konvensional secara spesifik tanpa merusak sel tubuh manusia.',
+        explanation: 'Menguntungkan: Terapi fag memanfaatkan sifat spesifik bakteriofag yang hanya menginfeksi dan menghancurkan sel bakteri target melalui daur litik sehingga aman bagi sel eukariotik manusia.'
       },
       {
-        id: 'bakteriofag',
-        name: 'Bakteriofag T4',
-        baseHex: '#10B981',
-        accentHex: '#6EE7B7',
-        darkHex: '#065F46',
-        radius: 48,
+        id: 2,
+        title: 'Baculovirus sebagai Biopestisida',
+        category: 'Bidang Pertanian',
+        icon: 'plant',
+        type: 'beneficial',
+        description: 'Disemprotkan pada lahan tanaman budidaya untuk membasmi populasi ulat dan serangga hama pemakan daun tanpa meninggalkan residu beracun di lingkungan.',
+        explanation: 'Menguntungkan: Baculovirus secara alami hanya menginfeksi serangga hama tertentu dan tidak membahayakan manusia, hewan ternak, maupun tumbuhan sehingga menjadi biopestisida ramah lingkungan.'
       },
       {
-        id: 'adenovirus',
-        name: 'Adenovirus',
-        baseHex: '#3B82F6',
-        accentHex: '#93C5FD',
-        darkHex: '#1E40AF',
-        radius: 44,
+        id: 3,
+        title: 'Retrovirus / Lentivirus sebagai Vektor Terapi Gen',
+        category: 'Rekayasa Genetika',
+        icon: 'dna',
+        type: 'beneficial',
+        description: 'Virus yang sifat patogennya telah dihilangkan digunakan untuk mengantarkan salinan gen normal ke dalam sel pasien guna memperbaiki kelainan genetik seperti SCID.',
+        explanation: 'Menguntungkan: Kemampuan retrovirus menyisipkan materi genetik ke genom inang dimanfaatkan para ahli bioteknologi sebagai kurir (vektor) untuk mengganti gen yang rusak pada terapi gen.'
       },
       {
-        id: 'influenza',
-        name: 'Influenza',
-        baseHex: '#F59E0B',
-        accentHex: '#FDE68A',
-        darkHex: '#92400E',
-        radius: 42,
+        id: 4,
+        title: 'Pembuatan Vaksin (Polio & Campak)',
+        category: 'Bidang Kesehatan',
+        icon: 'medical',
+        type: 'beneficial',
+        description: 'Partikel virus yang telah dilemahkan (attenuated) atau dimatikan disuntikkan ke tubuh untuk merangsang pembentukan antibodi dan sel memori imun spesifik.',
+        explanation: 'Menguntungkan: Vaksin melatih sistem kekebalan tubuh mengenali antigen virus tanpa menimbulkan infeksi parah sehingga tubuh kebal saat terpapar virus ganas di kemudian hari.'
       },
       {
-        id: 'filovirus',
-        name: 'Filovirus (Ebola)',
-        baseHex: '#8B5CF6',
-        accentHex: '#DDD6FE',
-        darkHex: '#5B21B6',
-        radius: 48,
+        id: 5,
+        title: 'Produksi Interferon',
+        category: 'Bioteknologi Medis',
+        icon: 'medical',
+        type: 'beneficial',
+        description: 'Melalui rekayasa genetika melibatkan komponen virus, sel inang dirangsang menghasilkan protein antivirus alami yang mencegah replikasi virus dan menghambat sel tumor.',
+        explanation: 'Menguntungkan: Interferon merupakan glikoprotein pelindung yang memperingatkan sel-sel sehat di sekitarnya agar meningkatkan pertahanan terhadap serangan virus maupun pertumbuhan tumor.'
       },
       {
-        id: 'rabies',
-        name: 'Rabies (Lyssavirus)',
-        baseHex: '#06B6D4',
-        accentHex: '#A5F3FC',
-        darkHex: '#155E75',
-        radius: 44,
+        id: 6,
+        title: 'Pembuatan Antitoksin',
+        category: 'Rekayasa Genetika',
+        icon: 'dna',
+        type: 'beneficial',
+        description: 'Gen penghasil antitoksin manusia disisipkan ke dalam DNA profag virus yang kemudian menginfeksi bakteri secara lisogenik untuk memproduksi zat antitoksin secara massal.',
+        explanation: 'Menguntungkan: Dengan menggabungkan gen manusia pada profag dalam daur lisogenik, bakteri anakan yang membelah diri akan turut memproduksi antitoksin bermanfaat bagi medis.'
       },
+      {
+        id: 7,
+        title: 'Virus Onkolitik',
+        category: 'Bidang Kesehatan',
+        icon: 'medical',
+        type: 'beneficial',
+        description: 'Virus yang dimodifikasi secara genetik agar secara selektif menginfeksi, bereplikasi di dalam, dan menghancurkan sel-sel kanker tanpa merusak jaringan sehat.',
+        explanation: 'Menguntungkan: Virus onkolitik melisiskan sel tumor secara langsung sekaligus memicu respons sistem imun tubuh untuk mengenali dan menyerang sel kanker yang tersisa.'
+      },
+      {
+        id: 8,
+        title: 'Pemetaan Kromosom Bakteri melalui Transduksi',
+        category: 'Riset Genetika',
+        icon: 'phage',
+        type: 'beneficial',
+        description: 'Bakteriofag memindahkan segmen DNA dari satu bakteri donor ke bakteri resipien untuk membantu ilmuwan memetakan urutan dan jarak antar-gen pada kromosom bakteri.',
+        explanation: 'Menguntungkan: Peristiwa transduksi oleh bakteriofag menjadi instrumen penting dalam penelitian genetika mikroba untuk mengetahui lokasi gen pada kromosom bakteri.'
+      },
+      {
+        id: 9,
+        title: 'Virus Myxoma sebagai Biokontrol Hama',
+        category: 'Ekologi & Pertanian',
+        icon: 'animal',
+        type: 'beneficial',
+        description: 'Dimanfaatkan secara terkendali untuk menekan ledakan populasi kelinci liar invasif yang merusak padang rumput dan lahan pertanian.',
+        explanation: 'Menguntungkan: Virus Myxoma berperan sebagai agen pengendali hayati (biokontrol) spesifik spesies untuk memulihkan keseimbangan ekosistem pertanian dari hama kelinci liar.'
+      },
+      {
+        id: 10,
+        title: 'Vektor Adenovirus dalam Vaksin Rekombinan',
+        category: 'Bioteknologi Medis',
+        icon: 'dna',
+        type: 'beneficial',
+        description: 'Adenovirus yang dibuat tidak mampu bereplikasi digunakan sebagai pembawa kode genetik protein antigen aman ke dalam sel tubuh untuk memicu kekebalan.',
+        explanation: 'Menguntungkan: Vektor Adenovirus mengantarkan cetak biru antigen secara efisien agar tubuh memproduksi antibodi spesifik tanpa risiko terinfeksi penyakit aslinya.'
+      },
+      {
+        id: 11,
+        title: 'Kloning Gen dan Ekspresi Protein Terapeutik',
+        category: 'Rekayasa Genetika',
+        icon: 'dna',
+        type: 'beneficial',
+        description: 'Vektor virus dimanfaatkan di laboratorium bioteknologi untuk menyisipkan gen target ke dalam kultur sel agar menghasilkan enzim dan protein obat dalam jumlah besar.',
+        explanation: 'Menguntungkan: Efisiensi infeksi virus dimanfaatkan sebagai sistem ekspresi gen untuk memproduksi protein terapeutik dan enzim medis secara cepat dan akurat.'
+      },
+
+      // --- MERUGIKAN (13 KARTU) ---
+      {
+        id: 12,
+        title: 'Tobacco Mosaic Virus (TMV)',
+        category: 'Patogen Tumbuhan',
+        icon: 'plant',
+        type: 'harmful',
+        description: 'Menginfeksi daun tembakau, tomat, dan cabai sehingga menimbulkan bercak-bercak kuning belang (mosaik), merusak klorofil, dan menghambat pertumbuhan tanaman.',
+        explanation: 'Merugikan: TMV merusak kloroplas pada jaringan mesofil daun sehingga laju fotosintesis menurun drastis dan menurunkan kualitas maupun hasil panen.'
+      },
+      {
+        id: 13,
+        title: 'Virus Tungro',
+        category: 'Patogen Tumbuhan',
+        icon: 'plant',
+        type: 'harmful',
+        description: 'Ditularkan oleh serangga vektor wereng hijau (Nephotettix virescens), menyebabkan tanaman padi tumbuh kerdil, jumlah anakan berkurang, dan daun menguning-oranye.',
+        explanation: 'Merugikan: Penyakit tungro merupakan salah satu penyebab utama gagal panen padi di Asia karena menghambat pemanjangan batang dan pengisian bulir padi.'
+      },
+      {
+        id: 14,
+        title: 'Citrus Tristeza Virus (CTV)',
+        category: 'Patogen Tumbuhan',
+        icon: 'plant',
+        type: 'harmful',
+        description: 'Ditularkan oleh kutu daun (aphid) dan menyerang jaringan pembuluh tapis (floem) pada pohon jeruk hingga menyebabkan daun menguning, layu, dan kematian pohon.',
+        explanation: 'Merugikan: CTV menyumbat dan merusak pembuluh floem sehingga hasil fotosintesis tidak dapat dialirkan ke akar, mengakibatkan pohon jeruk mati perlahan.'
+      },
+      {
+        id: 15,
+        title: 'Tomato Yellow Leaf Curl Virus (TYLCV)',
+        category: 'Patogen Tumbuhan',
+        icon: 'plant',
+        type: 'harmful',
+        description: 'Ditularkan oleh kutu kebul (Bemisia tabaci), mengakibatkan daun tanaman tomat mengeriting menggulung ke atas, tepi daun menguning, dan bunga rontok.',
+        explanation: 'Merugikan: Infeksi TYLCV mengacaukan hormon pertumbuhan tanaman tomat sehingga tanaman kerdil dan gagal menghasilkan buah.'
+      },
+      {
+        id: 16,
+        title: 'Human Immunodeficiency Virus (HIV)',
+        category: 'Patogen Manusia',
+        icon: 'pathogen',
+        type: 'harmful',
+        description: 'Menyerang dan menghancurkan sel limfosit T-helper (CD4+) sehingga menurunkan sistem kekebalan tubuh manusia secara drastis dan memicu sindrom AIDS.',
+        explanation: 'Merugikan: Kerusakan sel limfosit T CD4+ membuat tubuh penderita kehilangan kemampuan melawan infeksi oportunistik yang pada orang sehat tidak berbahaya.'
+      },
+      {
+        id: 17,
+        title: 'Dengue Virus (DENV)',
+        category: 'Patogen Manusia',
+        icon: 'pathogen',
+        type: 'harmful',
+        description: 'Ditularkan melalui gigitan nyamuk betina Aedes aegypti, memicu demam tinggi mendadak, nyeri sendi hebat, kebocoran plasma, dan penurunan trombosit darah.',
+        explanation: 'Merugikan: Virus Dengue memicu penyakit Demam Berdarah Dengue (DBD) yang dapat menyebabkan syok hipovolemik dan perdarahan serius jika tidak segera ditangani.'
+      },
+      {
+        id: 18,
+        title: 'Rabies Virus',
+        category: 'Patogen Manusia & Hewan',
+        icon: 'animal',
+        type: 'harmful',
+        description: 'Menular melalui air liur gigitan hewan terinfeksi (seperti anjing atau kelelawar) dan menyerang sistem saraf pusat, memicu peradangan otak akut (ensefalitis).',
+        explanation: 'Merugikan: Virus Rabies merambat melalui serabut saraf menuju otak dan sumsum tulang belakang, menyebabkan hidrofobia (takut air), kejang, hingga kematian.'
+      },
+      {
+        id: 19,
+        title: 'Avian Influenza Virus (H5N1)',
+        category: 'Patogen Hewan & Manusia',
+        icon: 'animal',
+        type: 'harmful',
+        description: 'Menyebabkan wabah flu burung yang sangat menular dan mematikan pada unggas peliharaan serta bersifat zoonosis karena dapat menular ke manusia.',
+        explanation: 'Merugikan: Virus H5N1 menyerang saluran pernapasan dan organ dalam unggas secara sistemik dengan tingkat mortalitas sangat tinggi serta mengancam kesehatan manusia.'
+      },
+      {
+        id: 20,
+        title: 'Newcastle Disease Virus (NDV)',
+        category: 'Patogen Hewan Ternak',
+        icon: 'animal',
+        type: 'harmful',
+        description: 'Menyebabkan penyakit tetelo pada ayam dan unggas dengan gejala khas gangguan pernapasan, diare kehijauan, serta gangguan saraf berupa leher terpuntir (tortikolis).',
+        explanation: 'Merugikan: Penyakit tetelo akibat NDV dapat memusnahkan satu populasi peternakan ayam dalam waktu singkat karena daya tularnya yang sangat cepat.'
+      },
+      {
+        id: 21,
+        title: 'Foot and Mouth Disease Virus (FMDV)',
+        category: 'Patogen Hewan Ternak',
+        icon: 'animal',
+        type: 'harmful',
+        description: 'Menyebabkan Penyakit Mulut dan Kuku (PMK) pada sapi, kerbau, kambing, dan ternak berkuku genap dengan gejala lepuh di rongga mulut, lidah, dan teracak kaki.',
+        explanation: 'Merugikan: FMDV menyebabkan ternak sulit makan dan pincang sehingga menurunkan produksi susu dan daging secara drastis serta merugikan peternak.'
+      },
+      {
+        id: 22,
+        title: 'Poliovirus',
+        category: 'Patogen Manusia',
+        icon: 'pathogen',
+        type: 'harmful',
+        description: 'Masuk melalui jalur fekal-oral dan dapat menginvasi sistem saraf pusat, merusak sel saraf motorik di sumsum tulang belakang hingga memicu kelumpuhan permanen.',
+        explanation: 'Merugikan: Poliovirus menghancurkan neuron motorik yang mengendalikan otot rangka sehingga penderita mengalami kelumpuhan layuh akut (poliomielitis).'
+      },
+      {
+        id: 23,
+        title: 'Hepatitis B Virus (HBV)',
+        category: 'Patogen Manusia',
+        icon: 'pathogen',
+        type: 'harmful',
+        description: 'Menginfeksi sel-sel hati (hepatosit) melalui darah atau cairan tubuh, memicu peradangan hati kronis, jaringan parut (sirosis), hingga meningkatkan risiko kanker hati.',
+        explanation: 'Merugikan: Infeksi HBV kronis merusak fungsi metabolisme dan detoksifikasi hati secara bertahap sehingga berujung pada gagal hati atau karsinoma hepatoseluler.'
+      },
+      {
+        id: 24,
+        title: 'Ebola Virus',
+        category: 'Patogen Manusia',
+        icon: 'pathogen',
+        type: 'harmful',
+        description: 'Menyebabkan demam berdarah filovirus yang sangat berat dengan gejala kerusakan dinding pembuluh darah, perdarahan internal maupun eksternal, serta kegagalan multi-organ.',
+        explanation: 'Merugikan: Ebola Virus melumpuhkan respons imun bawaan dan merusak sel endotel pembuluh darah sehingga menimbulkan syok dan tingkat fatalitas sangat tinggi.'
+      }
     ];
 
-    let simViruses = [];
+    // -------------------------------------------------------------------------
+    // 4. STATE PERMAINAN & REFERENSI ELEMEN DOM
+    // -------------------------------------------------------------------------
+    const gameState = {
+      mode: 'classic', // 'classic' | 'timeattack'
+      deck: [],
+      currentIndex: 0,
+      score: 0,
+      streak: 0,
+      bestStreak: 0,
+      lives: 3,
+      timeLeft: 60.0,
+      timerInterval: null,
+      autoNextTimeout: null,
+      isLocked: false, // true saat panel feedback sedang terbuka
+      history: [],     // menyimpan riwayat { card, userChoice, isCorrect }
+      reviewFilter: 'all',
+    };
 
-    function initSimViruses(randomize = false) {
-      const w = bufferCanvas.width;
-      const h = bufferCanvas.height;
+    // Layar
+    const screenLobby = document.getElementById('screen-lobby');
+    const screenGame = document.getElementById('screen-game');
+    const screenResults = document.getElementById('screen-results');
 
-      // Grid 3 kolom x 2 baris agar keenam spesimen tersebar rapi dan mudah diklik
-      const cols = 3;
-      const rows = 2;
-      const cellW = w / cols;
-      const cellH = h / rows;
+    // HUD & Kontrol Game
+    const hudScore = document.getElementById('hud-score');
+    const hudStreak = document.getElementById('hud-streak');
+    const hudMultiplier = document.getElementById('hud-multiplier');
+    const hudLivesBox = document.getElementById('hud-lives-box');
+    const hudLivesIcons = document.getElementById('hud-lives-icons');
+    const hudTimerBox = document.getElementById('hud-timer-box');
+    const hudTimerText = document.getElementById('hud-timer-text');
+    const hudProgressLabel = document.getElementById('hud-progress-label');
+    const hudModeLabel = document.getElementById('hud-mode-label');
+    const hudProgressBar = document.getElementById('hud-progress-bar');
+    const scoreDeltaAnchor = document.getElementById('score-delta-anchor');
+    const timerDeltaAnchor = document.getElementById('timer-delta-anchor');
 
-      const indices = [0, 1, 2, 3, 4, 5];
-      if (randomize) {
-        for (let i = indices.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [indices[i], indices[j]] = [indices[j], indices[i]];
-        }
+    // Kartu & Zona Interaksi
+    const caseCard = document.getElementById('case-card');
+    const cardCategoryBadge = document.getElementById('card-category-badge');
+    const cardIconContainer = document.getElementById('card-icon-container');
+    const cardTitle = document.getElementById('card-title');
+    const cardDescription = document.getElementById('card-description');
+    const dragStampBeneficial = document.getElementById('drag-stamp-beneficial');
+    const dragStampHarmful = document.getElementById('drag-stamp-harmful');
+    const btnChooseBeneficial = document.getElementById('btn-choose-beneficial');
+    const btnChooseHarmful = document.getElementById('btn-choose-harmful');
+
+    // Panel Feedback
+    const feedbackPanel = document.getElementById('feedback-panel');
+    const feedbackIconBadge = document.getElementById('feedback-icon-badge');
+    const feedbackStatusTitle = document.getElementById('feedback-status-title');
+    const feedbackClassificationLabel = document.getElementById('feedback-classification-label');
+    const feedbackExplanationText = document.getElementById('feedback-explanation-text');
+    const nextCardBtn = document.getElementById('next-card-btn');
+    const nextCardBtnLabel = document.getElementById('next-card-btn-label');
+    const timeattackAutoBarWrap = document.getElementById('timeattack-auto-bar-wrap');
+    const timeattackAutoBar = document.getElementById('timeattack-auto-bar');
+
+    // Modal & Konfirmasi
+    const guideModal = document.getElementById('guide-modal');
+    const quitConfirmBar = document.getElementById('quit-confirm-bar');
+
+    // -------------------------------------------------------------------------
+    // 5. UTILITAS ACAK KARTU, EFEK PARTIKEL & POPUP DELTA
+    // -------------------------------------------------------------------------
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
       }
-
-      simViruses = indices.map((speciesIdx, slotIdx) => {
-        const sp = VIRUS_SPECIES[speciesIdx];
-        const col = slotIdx % cols;
-        const row = Math.floor(slotIdx / cols);
-        const offsetX = randomize ? (Math.random() - 0.5) * 90 : 0;
-        const offsetY = randomize ? (Math.random() - 0.5) * 55 : 0;
-
-        return {
-          ...sp,
-          x: cellW * (col + 0.5) + offsetX,
-          y: cellH * (row + 0.5) + offsetY,
-          vx: (Math.random() > 0.5 ? 1 : -1) * (24 + Math.random() * 20),
-          vy: (Math.random() > 0.5 ? 1 : -1) * (18 + Math.random() * 18),
-          phase: Math.random() * Math.PI * 2,
-          rotation: (Math.random() - 0.5) * 0.4,
-        };
-      });
+      return copy;
     }
 
-    function updateSimViruses(dt) {
-      if (!state.isSimAnimating) return;
-      state.simTime += dt;
-
-      const w = bufferCanvas.width;
-      const h = bufferCanvas.height;
-      const margin = 85;
-
-      simViruses.forEach((v) => {
-        v.x += v.vx * dt;
-        v.y += v.vy * dt + Math.sin(state.simTime * 2.2 + v.phase) * 0.35;
-        v.rotation += Math.sin(state.simTime * 1.3 + v.phase) * 0.004;
-
-        if (v.x < margin) {
-          v.x = margin;
-          v.vx = Math.abs(v.vx);
-        } else if (v.x > w - margin) {
-          v.x = w - margin;
-          v.vx = -Math.abs(v.vx);
-        }
-
-        if (v.y < margin) {
-          v.y = margin;
-          v.vy = Math.abs(v.vy);
-        } else if (v.y > h - margin) {
-          v.y = h - margin;
-          v.vy = -Math.abs(v.vy);
-        }
-      });
+    function getStreakMultiplier(streak) {
+      if (streak >= 10) return 3;
+      if (streak >= 6) return 2;
+      if (streak >= 3) return 1.5;
+      return 1;
     }
 
-    // Menggambar latar kisi mikroskop gelap & 6 spesimen virus ke bufferCtx
-    function drawSimulationToBuffer() {
-      const w = bufferCanvas.width;
-      const h = bufferCanvas.height;
-
-      // Latar belakang mikroskop gelap bergradasi radial
-      const bgGrad = bufferCtx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, w * 0.65);
-      bgGrad.addColorStop(0, '#0f172a');
-      bgGrad.addColorStop(1, '#020617');
-      bufferCtx.fillStyle = bgGrad;
-      bufferCtx.fillRect(0, 0, w, h);
-
-      // Kisi (Grid) Mikroskop Halus
-      bufferCtx.strokeStyle = 'rgba(34, 211, 238, 0.07)';
-      bufferCtx.lineWidth = 1;
-      const gridStep = 40;
-      for (let gx = 0; gx <= w; gx += gridStep) {
-        bufferCtx.beginPath();
-        bufferCtx.moveTo(gx, 0);
-        bufferCtx.lineTo(gx, h);
-        bufferCtx.stroke();
-      }
-      for (let gy = 0; gy <= h; gy += gridStep) {
-        bufferCtx.beginPath();
-        bufferCtx.moveTo(0, gy);
-        bufferCtx.lineTo(w, gy);
-        bufferCtx.stroke();
-      }
-
-      // Garis sumbu tengah optik mikroskop
-      bufferCtx.strokeStyle = 'rgba(34, 211, 238, 0.14)';
-      bufferCtx.setLineDash([6, 6]);
-      bufferCtx.beginPath();
-      bufferCtx.moveTo(w / 2, 0);
-      bufferCtx.lineTo(w / 2, h);
-      bufferCtx.moveTo(0, h / 2);
-      bufferCtx.lineTo(w, h / 2);
-      bufferCtx.stroke();
-      bufferCtx.setLineDash([]);
-
-      // Gambar setiap spesimen virus
-      simViruses.forEach((v) => {
-        bufferCtx.save();
-        bufferCtx.translate(v.x, v.y);
-
-        // Gambar bentuk morfologi khas tiap virus
-        bufferCtx.save();
-        bufferCtx.rotate(v.rotation);
-
-        if (v.id === 'coronavirus') {
-          drawCoronavirus(bufferCtx, v);
-        } else if (v.id === 'bakteriofag') {
-          drawBakteriofag(bufferCtx, v);
-        } else if (v.id === 'adenovirus') {
-          drawAdenovirus(bufferCtx, v);
-        } else if (v.id === 'influenza') {
-          drawInfluenza(bufferCtx, v);
-        } else if (v.id === 'filovirus') {
-          drawFilovirus(bufferCtx, v);
-        } else if (v.id === 'rabies') {
-          drawRabies(bufferCtx, v);
-        }
-        bufferCtx.restore();
-
-        // Label nama spesimen halus di bawah virus
-        bufferCtx.font = '600 12px Inter, sans-serif';
-        bufferCtx.textAlign = 'center';
-        bufferCtx.fillStyle = 'rgba(226, 232, 240, 0.85)';
-        bufferCtx.fillText(v.name, 0, v.radius + 26);
-
-        bufferCtx.restore();
-      });
+    function spawnDeltaPopup(anchorEl, text, colorClass) {
+      const badge = document.createElement('span');
+      badge.className = `inline-block font-mono text-xs sm:text-sm font-extrabold whitespace-nowrap animate-delta ${colorClass}`;
+      badge.textContent = text;
+      anchorEl.innerHTML = '';
+      anchorEl.appendChild(badge);
     }
 
-    function drawCoronavirus(c, v) {
-      const spikes = 16;
-      for (let i = 0; i < spikes; i++) {
-        const angle = (i / spikes) * Math.PI * 2;
-        const x1 = Math.cos(angle) * 32;
-        const y1 = Math.sin(angle) * 32;
-        const x2 = Math.cos(angle) * 48;
-        const y2 = Math.sin(angle) * 48;
+    function spawnConfettiBurst(originEl) {
+      const rect = originEl.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const colors = ['#14b8a6', '#22d3ee', '#34d399', '#facc15', '#a78bfa'];
 
-        c.strokeStyle = v.baseHex;
-        c.lineWidth = 4;
-        c.beginPath();
-        c.moveTo(x1, y1);
-        c.lineTo(x2, y2);
-        c.stroke();
+      for (let i = 0; i < 22; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'confetti-particle w-2.5 h-2.5 rounded-sm';
+        particle.style.left = `${centerX}px`;
+        particle.style.top = `${centerY}px`;
+        particle.style.backgroundColor = colors[i % colors.length];
 
-        c.fillStyle = v.accentHex;
-        c.beginPath();
-        c.arc(x2, y2, 4.5, 0, Math.PI * 2);
-        c.fill();
-      }
+        const angle = (Math.PI * 2 * i) / 22 + (Math.random() - 0.5) * 0.4;
+        const distance = 70 + Math.random() * 110;
+        particle.style.setProperty('--tx', `${Math.cos(angle) * distance}px`);
+        particle.style.setProperty('--ty', `${Math.sin(angle) * distance - 20}px`);
 
-      // Kapsid bulat utama
-      c.fillStyle = v.baseHex;
-      c.beginPath();
-      c.arc(0, 0, 34, 0, Math.PI * 2);
-      c.fill();
-
-      // Cincin dalam & inti RNA
-      c.strokeStyle = v.darkHex;
-      c.lineWidth = 3;
-      c.beginPath();
-      c.arc(0, 0, 22, 0, Math.PI * 2);
-      c.stroke();
-
-      c.strokeStyle = v.accentHex;
-      c.lineWidth = 2.5;
-      c.beginPath();
-      for (let t = 0; t < Math.PI * 4; t += 0.25) {
-        const r = t * 1.3;
-        const px = Math.cos(t) * r;
-        const py = Math.sin(t) * r;
-        if (t === 0) c.moveTo(px, py);
-        else c.lineTo(px, py);
-      }
-      c.stroke();
-    }
-
-    function drawBakteriofag(c, v) {
-      // Kepala ikosahedral
-      c.fillStyle = v.baseHex;
-      c.strokeStyle = v.darkHex;
-      c.lineWidth = 2.5;
-      c.beginPath();
-      c.moveTo(0, -52);
-      c.lineTo(24, -36);
-      c.lineTo(24, -12);
-      c.lineTo(0, 4);
-      c.lineTo(-24, -12);
-      c.lineTo(-24, -36);
-      c.closePath();
-      c.fill();
-      c.stroke();
-
-      // Untai DNA di dalam kepala
-      c.strokeStyle = v.accentHex;
-      c.lineWidth = 2.5;
-      c.beginPath();
-      c.moveTo(-8, -34);
-      c.bezierCurveTo(10, -28, -10, -20, 8, -14);
-      c.stroke();
-
-      // Leher & Selubung ekor
-      c.fillStyle = v.baseHex;
-      c.fillRect(-7, 4, 14, 30);
-      c.strokeRect(-7, 4, 14, 30);
-
-      // Lempeng dasar
-      c.fillStyle = v.accentHex;
-      c.fillRect(-14, 34, 28, 5);
-
-      // 6 Serabut ekor
-      c.strokeStyle = v.baseHex;
-      c.lineWidth = 3;
-      const legs = [
-        [[-12, 37], [-32, 24], [-44, 52]],
-        [[-10, 38], [-28, 36], [-36, 58]],
-        [[-6, 39], [-18, 46], [-22, 62]],
-        [[12, 37], [32, 24], [44, 52]],
-        [[10, 38], [28, 36], [36, 58]],
-        [[6, 39], [18, 46], [22, 62]],
-      ];
-      legs.forEach((pts) => {
-        c.beginPath();
-        c.moveTo(pts[0][0], pts[0][1]);
-        c.lineTo(pts[1][0], pts[1][1]);
-        c.lineTo(pts[2][0], pts[2][1]);
-        c.stroke();
-      });
-    }
-
-    function drawAdenovirus(c, v) {
-      const sides = 6;
-      const outerR = 38;
-      const fiberR = 52;
-
-      // Antena penton pada setiap sudut
-      for (let i = 0; i < sides; i++) {
-        const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
-        const vx = Math.cos(angle) * outerR;
-        const vy = Math.sin(angle) * outerR;
-        const fx = Math.cos(angle) * fiberR;
-        const fy = Math.sin(angle) * fiberR;
-
-        c.strokeStyle = v.accentHex;
-        c.lineWidth = 3;
-        c.beginPath();
-        c.moveTo(vx, vy);
-        c.lineTo(fx, fy);
-        c.stroke();
-
-        c.fillStyle = v.baseHex;
-        c.beginPath();
-        c.arc(fx, fy, 4.5, 0, Math.PI * 2);
-        c.fill();
-      }
-
-      // Badan polihedral utama
-      c.fillStyle = v.baseHex;
-      c.strokeStyle = v.darkHex;
-      c.lineWidth = 2.5;
-      c.beginPath();
-      for (let i = 0; i < sides; i++) {
-        const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
-        const px = Math.cos(angle) * outerR;
-        const py = Math.sin(angle) * outerR;
-        if (i === 0) c.moveTo(px, py);
-        else c.lineTo(px, py);
-      }
-      c.closePath();
-      c.fill();
-      c.stroke();
-
-      // Faset segitiga ikosahedral di tengah
-      c.strokeStyle = v.accentHex;
-      c.lineWidth = 2;
-      c.beginPath();
-      c.moveTo(0, -22);
-      c.lineTo(20, 12);
-      c.lineTo(-20, 12);
-      c.closePath();
-      c.stroke();
-    }
-
-    function drawInfluenza(c, v) {
-      // Tonjolan permukaan rapat
-      const spikes = 20;
-      for (let i = 0; i < spikes; i++) {
-        const angle = (i / spikes) * Math.PI * 2;
-        const x1 = Math.cos(angle) * 32;
-        const y1 = Math.sin(angle) * 32;
-        const x2 = Math.cos(angle) * 44;
-        const y2 = Math.sin(angle) * 44;
-
-        c.strokeStyle = i % 2 === 0 ? v.baseHex : v.accentHex;
-        c.lineWidth = 3.5;
-        c.beginPath();
-        c.moveTo(x1, y1);
-        c.lineTo(x2, y2);
-        c.stroke();
-      }
-
-      // Selubung sferis
-      c.fillStyle = v.baseHex;
-      c.strokeStyle = v.darkHex;
-      c.lineWidth = 3;
-      c.beginPath();
-      c.arc(0, 0, 33, 0, Math.PI * 2);
-      c.fill();
-      c.stroke();
-
-      // Segmen-segmen RNA
-      c.strokeStyle = v.darkHex;
-      c.lineWidth = 3.5;
-      c.lineCap = 'round';
-      for (let s = -2; s <= 2; s++) {
-        c.beginPath();
-        c.moveTo(s * 6, -14 + Math.abs(s) * 2);
-        c.lineTo(s * 6, 14 - Math.abs(s) * 2);
-        c.stroke();
-      }
-    }
-
-    function drawFilovirus(c, v) {
-      // Bentuk filamen panjang melengkung khas Ebola/Marburg
-      c.lineCap = 'round';
-      c.lineJoin = 'round';
-
-      c.strokeStyle = v.baseHex;
-      c.lineWidth = 22;
-      c.beginPath();
-      c.moveTo(-42, 24);
-      c.bezierCurveTo(-48, -32, 8, -42, 12, 0);
-      c.bezierCurveTo(16, 36, 48, 22, 42, -22);
-      c.stroke();
-
-      // Inti heliks di dalam filamen
-      c.strokeStyle = v.accentHex;
-      c.lineWidth = 5;
-      c.setLineDash([6, 6]);
-      c.beginPath();
-      c.moveTo(-42, 24);
-      c.bezierCurveTo(-48, -32, 8, -42, 12, 0);
-      c.bezierCurveTo(16, 36, 48, 22, 42, -22);
-      c.stroke();
-      c.setLineDash([]);
-    }
-
-    function drawRabies(c, v) {
-      // Bentuk peluru (bullet-shaped) khas Rhabdovirus
-      c.fillStyle = v.baseHex;
-      c.strokeStyle = v.darkHex;
-      c.lineWidth = 3;
-
-      c.beginPath();
-      c.moveTo(-24, 34);
-      c.lineTo(-24, -8);
-      c.arc(0, -8, 24, Math.PI, 0, false);
-      c.lineTo(24, 34);
-      c.closePath();
-      c.fill();
-      c.stroke();
-
-      // Garis heliks ribonukleoprotein di dalam peluru
-      c.strokeStyle = v.accentHex;
-      c.lineWidth = 3;
-      for (let y = -10; y <= 24; y += 8) {
-        c.beginPath();
-        c.moveTo(-14, y);
-        c.lineTo(14, y + 3);
-        c.stroke();
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 900);
       }
     }
 
     // -------------------------------------------------------------------------
-    // 4. KONVERSI WARNA (RGB -> HEX & NAMA WARNA BAHASA INDONESIA)
+    // 6. NAVIGASI LAYAR & MULAI PERMAINAN
     // -------------------------------------------------------------------------
-    function rgbToHex(r, g, b) {
-      const toHex = (val) => Math.max(0, Math.min(255, Math.round(val))).toString(16).padStart(2, '0').toUpperCase();
-      return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    function showScreen(screenName) {
+      screenLobby.classList.add('hidden');
+      screenGame.classList.add('hidden');
+      screenResults.classList.add('hidden');
+      quitConfirmBar.classList.add('hidden');
+
+      if (screenName === 'lobby') screenLobby.classList.remove('hidden');
+      if (screenName === 'game') screenGame.classList.remove('hidden');
+      if (screenName === 'results') screenResults.classList.remove('hidden');
     }
 
-    function getIndonesianColorName(r, g, b) {
-      // Konversi RGB ke HSL untuk klasifikasi warna natural dalam Bahasa Indonesia
-      const rn = r / 255;
-      const gn = g / 255;
-      const bn = b / 255;
-      const max = Math.max(rn, gn, bn);
-      const min = Math.min(rn, gn, bn);
-      const l = (max + min) / 2;
-      const d = max - min;
-
-      if (d === 0 || (max - min) < 0.08) {
-        if (l < 0.14) return 'Hitam Pekat';
-        if (l < 0.35) return 'Abu-abu Gelap';
-        if (l < 0.72) return 'Abu-abu';
-        if (l < 0.92) return 'Abu-abu Terang';
-        return 'Putih';
+    function clearTimers() {
+      if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = null;
       }
-
-      const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      let h = 0;
-      if (max === rn) h = ((gn - bn) / d + (gn < bn ? 6 : 0)) * 60;
-      else if (max === gn) h = ((bn - rn) / d + 2) * 60;
-      else h = ((rn - gn) / d + 4) * 60;
-
-      if (l < 0.14) return 'Hitam Kebiruan / Gelap';
-      if (l > 0.92 && s < 0.3) return 'Putih Gading';
-
-      let baseName = 'Warna Campuran';
-      if (h >= 345 || h < 12) baseName = 'Merah Koral';
-      else if (h >= 12 && h < 34) baseName = 'Oranye';
-      else if (h >= 34 && h < 56) baseName = 'Kuning Amber';
-      else if (h >= 56 && h < 80) baseName = 'Hijau Limau';
-      else if (h >= 80 && h < 155) baseName = 'Hijau Zamrud';
-      else if (h >= 155 && h < 178) baseName = 'Hijau Toska';
-      else if (h >= 178 && h < 205) baseName = 'Biru Cyan';
-      else if (h >= 205 && h < 245) baseName = 'Biru Elektrik';
-      else if (h >= 245 && h < 285) baseName = 'Ungu Violet';
-      else if (h >= 285 && h < 325) baseName = 'Magenta';
-      else if (h >= 325 && h < 345) baseName = 'Merah Muda';
-
-      if (l < 0.32) return `${baseName} Tua`;
-      if (l > 0.76) return `${baseName} Muda`;
-      return baseName;
+      if (gameState.autoNextTimeout) {
+        clearTimeout(gameState.autoNextTimeout);
+        gameState.autoNextTimeout = null;
+      }
     }
 
-    // Identifikasi spesimen virus terdekat jika klik terjadi pada mode simulasi
-    function identifySubjectAt(x, y) {
-      if (state.mode === 'webcam') {
-        return 'Objek Webcam';
-      }
-      for (let i = simViruses.length - 1; i >= 0; i--) {
-        const v = simViruses[i];
-        const dist = Math.hypot(x - v.x, y - v.y);
-        if (dist <= v.radius + 16) {
-          return v.name;
-        }
-      }
-      return 'Latar Mikroskop';
-    }
+    function startGame(mode) {
+      soundFX.playClick();
+      clearTimers();
 
-    // -------------------------------------------------------------------------
-    // 5. PERHITUNGAN KOORDINAT PRESISI (CLIENT -> INTERNAL CANVAS)
-    // -------------------------------------------------------------------------
-    function getExactCanvasCoords(clientX, clientY) {
-      const rect = mainCanvas.getBoundingClientRect();
-      if (!rect.width || !rect.height) return { x: 0, y: 0 };
+      gameState.mode = mode;
+      gameState.score = 0;
+      gameState.streak = 0;
+      gameState.bestStreak = 0;
+      gameState.lives = 3;
+      gameState.timeLeft = 60.0;
+      gameState.currentIndex = 0;
+      gameState.isLocked = false;
+      gameState.history = [];
+      gameState.reviewFilter = 'all';
 
-      const scaleX = mainCanvas.width / rect.width;
-      const scaleY = mainCanvas.height / rect.height;
+      // Siapkan dek kartu acak
+      const shuffled = shuffleArray(VIRUS_CARDS_DB);
+      gameState.deck = mode === 'classic' ? shuffled.slice(0, 15) : shuffled;
 
-      const x = Math.max(0, Math.min(mainCanvas.width - 1, Math.round((clientX - rect.left) * scaleX)));
-      const y = Math.max(0, Math.min(mainCanvas.height - 1, Math.round((clientY - rect.top) * scaleY)));
-      return { x, y };
-    }
-
-    function samplePixelAt(x, y) {
-      const pixel = bufferCtx.getImageData(x, y, 1, 1).data;
-      const r = pixel[0];
-      const g = pixel[1];
-      const b = pixel[2];
-      const hex = rgbToHex(r, g, b);
-      const colorName = getIndonesianColorName(r, g, b);
-      return { r, g, b, hex, colorName };
-    }
-
-    // -------------------------------------------------------------------------
-    // 6. PELACAKAN WARNA OTOMATIS REAL-TIME (BOUNDING BOX & CENTROID)
-    // -------------------------------------------------------------------------
-    function computeRealTimeColorTracking() {
-      if (!state.trackingEnabled || state.trackedMarkerId === null) {
-        state.trackingResult = null;
-        return;
-      }
-
-      const targetMarker = state.markers.find((m) => m.id === state.trackedMarkerId);
-      if (!targetMarker) {
-        state.trackingResult = null;
-        return;
-      }
-
-      const w = bufferCanvas.width;
-      const h = bufferCanvas.height;
-      const imgData = bufferCtx.getImageData(0, 0, w, h).data;
-
-      const tr = targetMarker.rgb.r;
-      const tg = targetMarker.rgb.g;
-      const tb = targetMarker.rgb.b;
-      const tolSq = state.colorTolerance * state.colorTolerance;
-
-      let minX = w;
-      let minY = h;
-      let maxX = 0;
-      let maxY = 0;
-      let sumX = 0;
-      let sumY = 0;
-      let matchCount = 0;
-
-      // Sampling setiap 3 piksel agar berjalan mulus 60 FPS di semua perangkat
-      const step = 3;
-      for (let y = 0; y < h; y += step) {
-        const rowOffset = y * w * 4;
-        for (let x = 0; x < w; x += step) {
-          const idx = rowOffset + x * 4;
-          const dr = imgData[idx] - tr;
-          const dg = imgData[idx + 1] - tg;
-          const db = imgData[idx + 2] - tb;
-
-          if (dr * dr + dg * dg + db * db <= tolSq) {
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
-            sumX += x;
-            sumY += y;
-            matchCount++;
-          }
-        }
-      }
-
-      // Ambang minimum piksel agar tidak terganggu derau 1 titik
-      if (matchCount >= 10) {
-        state.trackingResult = {
-          minX: Math.max(0, minX - 4),
-          minY: Math.max(0, minY - 4),
-          maxX: Math.min(w - 1, maxX + 4),
-          maxY: Math.min(h - 1, maxY + 4),
-          cx: Math.round(sumX / matchCount),
-          cy: Math.round(sumY / matchCount),
-          pixelCount: matchCount,
-          target: targetMarker,
-        };
+      // Sesuaikan HUD mode
+      if (mode === 'classic') {
+        hudLivesBox.classList.remove('hidden');
+        hudTimerBox.classList.add('hidden');
+        hudModeLabel.textContent = 'Mode Klasik (15 Soal)';
       } else {
-        state.trackingResult = null;
+        hudLivesBox.classList.add('hidden');
+        hudTimerBox.classList.remove('hidden');
+        hudModeLabel.textContent = 'Mode Tantangan Cepat (60s)';
+        startCountdownTimer();
       }
+
+      updateHUD();
+      renderCurrentCard();
+      showScreen('game');
     }
 
-    // -------------------------------------------------------------------------
-    // 7. RENDERING OVERLAY PADA KANVAS UTAMA (PENANDA, PELACAKAN, LOUPE)
-    // -------------------------------------------------------------------------
-    function drawOverlaysOnMainCanvas() {
-      const w = mainCanvas.width;
-      const h = mainCanvas.height;
+    function startCountdownTimer() {
+      updateTimerDisplay();
+      gameState.timerInterval = setInterval(() => {
+        gameState.timeLeft = Math.max(0, +(gameState.timeLeft - 0.1).toFixed(1));
+        updateTimerDisplay();
 
-      // 1. Gambar Kotak Pelacak Otomatis (Bounding Box & Centroid) jika aktif
-      if (state.trackingEnabled && state.trackingResult) {
-        const tr = state.trackingResult;
-        const boxW = tr.maxX - tr.minX;
-        const boxH = tr.maxY - tr.minY;
-
-        ctx.save();
-        // Lapisan kotak pelacak transparan
-        ctx.fillStyle = `${tr.target.hex}22`;
-        ctx.fillRect(tr.minX, tr.minY, boxW, boxH);
-
-        // Garis tepi kotak pelacak putus-putus
-        ctx.strokeStyle = tr.target.hex;
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([8, 4]);
-        ctx.strokeRect(tr.minX, tr.minY, boxW, boxH);
-        ctx.setLineDash([]);
-
-        // Siku penegas di 4 sudut kotak
-        const corner = Math.min(16, Math.floor(Math.min(boxW, boxH) / 3));
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 3;
-        // Kiri atas
-        ctx.beginPath();
-        ctx.moveTo(tr.minX, tr.minY + corner);
-        ctx.lineTo(tr.minX, tr.minY);
-        ctx.lineTo(tr.minX + corner, tr.minY);
-        // Kanan atas
-        ctx.moveTo(tr.maxX - corner, tr.minY);
-        ctx.lineTo(tr.maxX, tr.minY);
-        ctx.lineTo(tr.maxX, tr.minY + corner);
-        // Kiri bawah
-        ctx.moveTo(tr.minX, tr.maxY - corner);
-        ctx.lineTo(tr.minX, tr.maxY);
-        ctx.lineTo(tr.minX + corner, tr.maxY);
-        // Kanan bawah
-        ctx.moveTo(tr.maxX - corner, tr.maxY);
-        ctx.lineTo(tr.maxX, tr.maxY);
-        ctx.lineTo(tr.maxX, tr.maxY - corner);
-        ctx.stroke();
-
-        // Titik Pusat (Centroid)
-        ctx.fillStyle = tr.target.hex;
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.arc(tr.cx, tr.cy, 7, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // Label Pelacakan di atas bounding box
-        const trackLabel = `LACAK #${tr.target.number} • Pusat (${tr.cx}, ${tr.cy})`;
-        ctx.font = '700 11px "JetBrains Mono", monospace';
-        const labelW = ctx.measureText(trackLabel).width + 14;
-        const labelX = Math.max(4, Math.min(w - labelW - 4, tr.minX));
-        const labelY = tr.minY > 26 ? tr.minY - 22 : tr.maxY + 6;
-
-        ctx.fillStyle = 'rgba(2, 6, 23, 0.88)';
-        ctx.beginPath();
-        ctx.roundRect(labelX, labelY, labelW, 18, 5);
-        ctx.fill();
-        ctx.strokeStyle = tr.target.hex;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        ctx.fillStyle = '#FFFFFF';
-        ctx.textAlign = 'left';
-        ctx.fillText(trackLabel, labelX + 7, labelY + 13);
-        ctx.restore();
-      }
-
-      // 2. Gambar Semua Penanda Posisi yang Telah Diklik (#1, #2, #3, ...)
-      state.markers.forEach((m) => {
-        ctx.save();
-
-        // Cincin luar gelap untuk kontras maksimal di latar terang
-        ctx.strokeStyle = 'rgba(2, 6, 23, 0.9)';
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, 16, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Cincin target berwarna sesuai warna yang diambil
-        ctx.strokeStyle = m.hex;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, 16, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Cincin tipis putih di dalam
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, 12, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Garis silang (crosshair) presisi
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(m.x - 22, m.y);
-        ctx.lineTo(m.x - 8, m.y);
-        ctx.moveTo(m.x + 8, m.y);
-        ctx.lineTo(m.x + 22, m.y);
-        ctx.moveTo(m.x, m.y - 22);
-        ctx.lineTo(m.x, m.y - 8);
-        ctx.moveTo(m.x, m.y + 8);
-        ctx.lineTo(m.x, m.y + 22);
-        ctx.stroke();
-
-        // Titik pusat warna
-        ctx.fillStyle = m.hex;
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Lencana Nomor Penanda (#1, #2...) + Label Koordinat (X, Y)
-        const badgeText = `#${m.number} (${m.x}, ${m.y})`;
-        ctx.font = '700 11px "JetBrains Mono", monospace';
-        const textWidth = ctx.measureText(badgeText).width;
-        const pillW = textWidth + 24;
-        const pillH = 22;
-
-        // Penyesuaian posisi label otomatis agar tidak keluar tepi kanvas
-        let pillX = m.x + 18;
-        let pillY = m.y - 26;
-        if (pillX + pillW > w - 6) pillX = m.x - pillW - 18;
-        if (pillY < 6) pillY = m.y + 12;
-        if (pillY + pillH > h - 6) pillY = h - pillH - 6;
-
-        // Latar pil gelap kontras
-        ctx.fillStyle = 'rgba(2, 6, 23, 0.9)';
-        ctx.beginPath();
-        ctx.roundRect(pillX, pillY, pillW, pillH, 6);
-        ctx.fill();
-
-        ctx.strokeStyle = m.hex;
-        ctx.lineWidth = 1.8;
-        ctx.stroke();
-
-        // Kotak kecil warna di dalam label
-        ctx.fillStyle = m.hex;
-        ctx.beginPath();
-        ctx.roundRect(pillX + 5, pillY + 5, 12, 12, 3);
-        ctx.fill();
-
-        // Teks nomor & koordinat
-        ctx.fillStyle = '#F8FAFC';
-        ctx.textAlign = 'left';
-        ctx.fillText(badgeText, pillX + 21, pillY + 15);
-
-        ctx.restore();
-      });
-
-      // 3. Gambar Garis Bidik (Crosshair) & Kotak Pratinjau Real-Time saat Hover
-      if (state.pointer.active) {
-        const px = state.pointer.x;
-        const py = state.pointer.y;
-        const pHex = state.pointer.hex;
-
-        ctx.save();
-
-        // Garis bidik vertikal & horizontal halus melintasi titik kursor
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]);
-        ctx.beginPath();
-        ctx.moveTo(px, 0);
-        ctx.lineTo(px, h);
-        ctx.moveTo(0, py);
-        ctx.lineTo(w, py);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Lingkaran bidik kecil di ujung kursor
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(px, py, 9, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Kotak pratinjau warna & koordinat (Loupe HUD) mengikuti kursor
-        const hudW = 166;
-        const hudH = 48;
-        let hudX = px + 16;
-        let hudY = py + 16;
-        if (hudX + hudW > w - 8) hudX = px - hudW - 16;
-        if (hudY + hudH > h - 8) hudY = py - hudH - 16;
-
-        ctx.fillStyle = 'rgba(2, 6, 23, 0.92)';
-        ctx.beginPath();
-        ctx.roundRect(hudX, hudY, hudW, hudH, 10);
-        ctx.fill();
-
-        ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-
-        // Kotak pratinjau warna piksel
-        ctx.fillStyle = pHex;
-        ctx.beginPath();
-        ctx.roundRect(hudX + 8, hudY + 8, 32, 32, 6);
-        ctx.fill();
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        // Kode HEX & Koordinat (X, Y)
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = '700 12px "JetBrains Mono", monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText(pHex, hudX + 48, hudY + 21);
-
-        ctx.fillStyle = '#38BDF8';
-        ctx.font = '600 11px "JetBrains Mono", monospace';
-        ctx.fillText(`X:${px}  Y:${py}`, hudX + 48, hudY + 37);
-
-        ctx.restore();
-      }
-    }
-
-    // -------------------------------------------------------------------------
-    // 8. LOOP UTAMA RENDERING KANVAS (60 FPS)
-    // -------------------------------------------------------------------------
-    function mainRenderLoop(now) {
-      const dt = Math.min(0.05, (now - state.lastFrameTimestamp) / 1000);
-      state.lastFrameTimestamp = now;
-
-      if (state.mode === 'simulasi') {
-        updateSimViruses(dt);
-        drawSimulationToBuffer();
-      } else if (state.mode === 'webcam') {
-        if (state.isWebcamStreaming && videoEl.readyState >= 2) {
-          // Sesuaikan dimensi kanvas dengan resolusi asli webcam jika berubah
-          if (
-            videoEl.videoWidth &&
-            videoEl.videoHeight &&
-            (bufferCanvas.width !== videoEl.videoWidth || bufferCanvas.height !== videoEl.videoHeight)
-          ) {
-            setCanvasDimensions(videoEl.videoWidth, videoEl.videoHeight);
-          }
-
-          bufferCtx.save();
-          if (state.isMirrored) {
-            bufferCtx.translate(bufferCanvas.width, 0);
-            bufferCtx.scale(-1, 1);
-          }
-          bufferCtx.drawImage(videoEl, 0, 0, bufferCanvas.width, bufferCanvas.height);
-          bufferCtx.restore();
-        } else {
-          bufferCtx.fillStyle = '#020617';
-          bufferCtx.fillRect(0, 0, bufferCanvas.width, bufferCanvas.height);
+        if (gameState.timeLeft <= 0) {
+          finishGame();
         }
-      }
-
-      // Perbarui pratinjau warna kursor secara real-time saat objek bergerak di bawah kursor
-      if (state.pointer.active) {
-        const sampled = samplePixelAt(state.pointer.x, state.pointer.y);
-        state.pointer.hex = sampled.hex;
-        state.pointer.rgb = { r: sampled.r, g: sampled.g, b: sampled.b };
-        state.pointer.colorName = sampled.colorName;
-      }
-
-      // Jalankan pelacakan warna otomatis jika diaktifkan
-      computeRealTimeColorTracking();
-
-      // Salin frame bersih dari bufferCanvas ke mainCanvas
-      ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-      ctx.drawImage(bufferCanvas, 0, 0);
-
-      // Gambar seluruh penanda, bounding box pelacak, dan kursor bidik di atas mainCanvas
-      drawOverlaysOnMainCanvas();
-
-      requestAnimationFrame(mainRenderLoop);
+      }, 100);
     }
 
-    function setCanvasDimensions(w, h) {
-      mainCanvas.width = w;
-      mainCanvas.height = h;
-      bufferCanvas.width = w;
-      bufferCanvas.height = h;
-      canvasWrapper.style.aspectRatio = `${w} / ${h}`;
-      canvasDimBadge.textContent = `${w} \u00D7 ${h} px`;
-    }
-
-    // -------------------------------------------------------------------------
-    // 9. INTERAKSI KLIK & GERAK KURSOR DI ATAS KANVAS
-    // -------------------------------------------------------------------------
-    mainCanvas.addEventListener('pointermove', (e) => {
-      const coords = getExactCanvasCoords(e.clientX, e.clientY);
-      const sampled = samplePixelAt(coords.x, coords.y);
-
-      state.pointer.active = true;
-      state.pointer.x = coords.x;
-      state.pointer.y = coords.y;
-      state.pointer.hex = sampled.hex;
-      state.pointer.rgb = { r: sampled.r, g: sampled.g, b: sampled.b };
-      state.pointer.colorName = sampled.colorName;
-    });
-
-    mainCanvas.addEventListener('pointerleave', () => {
-      state.pointer.active = false;
-    });
-
-    mainCanvas.addEventListener('click', (e) => {
-      // Cegah klik jika mode webcam sedang belum aktif
-      if (state.mode === 'webcam' && !state.isWebcamStreaming) {
-        showToast('Aktifkan kamera webcam terlebih dahulu untuk menangkap warna.', '#F59E0B');
-        return;
-      }
-
-      const coords = getExactCanvasCoords(e.clientX, e.clientY);
-      const sampled = samplePixelAt(coords.x, coords.y);
-      const subjectLabel = identifySubjectAt(coords.x, coords.y);
-
-      const newMarker = {
-        id: Date.now() + Math.random(),
-        number: state.nextMarkerNumber++,
-        x: coords.x,
-        y: coords.y,
-        hex: sampled.hex,
-        rgb: { r: sampled.r, g: sampled.g, b: sampled.b },
-        rgbString: `rgb(${sampled.r}, ${sampled.g}, ${sampled.b})`,
-        colorName: sampled.colorName,
-        subject: subjectLabel,
-      };
-
-      state.markers.unshift(newMarker);
-
-      // Jadikan warna terbaru sebagai target pelacakan otomatis
-      state.trackedMarkerId = newMarker.id;
-      updateTrackedColorUI();
-      renderMarkersSidebar();
-
-      showToast(
-        `Penanda #${newMarker.number} (${newMarker.hex} • ${newMarker.colorName}) disimpan di (${newMarker.x}, ${newMarker.y})`,
-        newMarker.hex
-      );
-    });
-
-    // -------------------------------------------------------------------------
-    // 10. MANAJEMEN SIDEBAR WARNA & POSISI TERSIMPAN + SALIN KLIPBOARD
-    // -------------------------------------------------------------------------
-    function copyTextToClipboard(text, hexColor) {
-      const tempTextarea = document.createElement('textarea');
-      tempTextarea.value = text;
-      tempTextarea.style.position = 'fixed';
-      tempTextarea.style.opacity = '0';
-      document.body.appendChild(tempTextarea);
-      tempTextarea.select();
-      try {
-        document.execCommand('copy');
-        showToast(`Kode warna ${text} berhasil disalin ke papan klip!`, hexColor);
-      } catch (err) {
-        showToast(`Kode warna: ${text}`, hexColor);
-      }
-      document.body.removeChild(tempTextarea);
-    }
-
-    function deleteMarker(id) {
-      state.markers = state.markers.filter((m) => m.id !== id);
-      if (state.trackedMarkerId === id) {
-        state.trackedMarkerId = state.markers.length > 0 ? state.markers[0].id : null;
-        updateTrackedColorUI();
-      }
-      renderMarkersSidebar();
-    }
-
-    function clearAllMarkers() {
-      state.markers = [];
-      state.nextMarkerNumber = 1;
-      state.trackedMarkerId = null;
-      state.trackingResult = null;
-      updateTrackedColorUI();
-      renderMarkersSidebar();
-      showToast('Semua penanda posisi dan riwayat warna telah dihapus.', '#06B6D4');
-    }
-
-    function selectMarkerForTracking(id) {
-      state.trackedMarkerId = id;
-      if (!state.trackingEnabled) {
-        setTrackingEnabled(true);
-      }
-      updateTrackedColorUI();
-      renderMarkersSidebar();
-    }
-
-    function updateTrackedColorUI() {
-      const target = state.markers.find((m) => m.id === state.trackedMarkerId);
-      if (target) {
-        trackedColorSwatch.style.backgroundColor = target.hex;
-        trackedColorInfo.textContent = `#${target.number} • ${target.hex} (${target.colorName})`;
+    function updateTimerDisplay() {
+      hudTimerText.textContent = `${gameState.timeLeft.toFixed(1)}s`;
+      if (gameState.timeLeft <= 10) {
+        hudTimerBox.className = 'relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-rose-950/90 border border-rose-500 animate-pulse';
+        hudTimerText.className = 'font-mono text-lg font-extrabold text-rose-300';
       } else {
-        trackedColorSwatch.style.backgroundColor = '#1e293b';
-        trackedColorInfo.textContent = 'Belum ada (klik virus di kanvas)';
+        hudTimerBox.className = 'relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-950 border border-amber-500/40';
+        hudTimerText.className = 'font-mono text-lg font-extrabold text-amber-300';
       }
     }
 
-    function renderMarkersSidebar() {
-      const count = state.markers.length;
-      savedCountBadge.textContent = `${count} Titik`;
-      btnClearAll.disabled = count === 0;
+    function updateHUD() {
+      hudScore.textContent = gameState.score;
+      hudStreak.textContent = gameState.streak;
+      const mult = getStreakMultiplier(gameState.streak);
+      hudMultiplier.textContent = `x${mult}`;
 
-      if (count === 0) {
-        markersListContainer.innerHTML = '';
-        markersListContainer.appendChild(emptyMarkersState);
-        emptyMarkersState.classList.remove('hidden');
-        return;
-      }
-
-      emptyMarkersState.classList.add('hidden');
-      markersListContainer.innerHTML = state.markers
-        .map((m) => {
-          const isBeingTracked = state.trackingEnabled && state.trackedMarkerId === m.id;
-          return `
-            <div class="rounded-2xl border ${
-              isBeingTracked
-                ? 'border-cyan-500 bg-cyan-950/25'
-                : 'border-slate-800 bg-slate-950/80 hover:border-slate-700'
-            } p-3.5 transition-all space-y-2.5">
-              
-              <!-- Baris Atas: Nomor Penanda, Kotak Warna, Nama Warna & Hapus -->
-              <div class="flex items-center justify-between gap-2.5">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <span class="px-2 py-1 rounded-lg bg-slate-800 text-cyan-400 font-mono text-xs font-extrabold shrink-0">
-                    #${m.number}
-                  </span>
-                  <div style="background-color: ${m.hex};" class="w-8 h-8 rounded-xl border border-white/25 shadow shrink-0"></div>
-                  <div class="min-w-0">
-                    <div class="text-xs sm:text-sm font-bold text-white truncate">${m.colorName}</div>
-                    <div class="text-[11px] text-slate-400 truncate">${m.subject}</div>
-                  </div>
-                </div>
-
-                <button type="button" onclick="deleteMarker(${m.id})" aria-label="Hapus penanda #${m.number}"
-                  class="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/60 transition-colors shrink-0">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <!-- Baris Detail: Kode HEX (Salin), RGB & Koordinat (X, Y) -->
-              <div class="grid grid-cols-2 gap-2 text-[11px] font-mono">
-                <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
-                  <span class="text-slate-200 font-bold">${m.hex}</span>
-                  <button type="button" onclick="copyTextToClipboard('${m.hex}', '${m.hex}')"
-                    class="text-cyan-400 hover:text-cyan-300 font-sans font-semibold text-[11px] underline underline-offset-2">
-                    Salin
-                  </button>
-                </div>
-
-                <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-                  <span class="text-slate-500">Pos:</span>
-                  <span class="text-emerald-400 font-bold">(${m.x}, ${m.y})</span>
-                </div>
-              </div>
-
-              <!-- Baris Bawah: Nilai RGB & Tombol Lacak Warna -->
-              <div class="flex items-center justify-between gap-2 pt-0.5">
-                <span class="text-[11px] font-mono text-slate-400">${m.rgbString}</span>
-                <button type="button" onclick="selectMarkerForTracking(${m.id})"
-                  class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors ${
-                    isBeingTracked
-                      ? 'bg-cyan-500 text-slate-950 font-bold'
-                      : 'bg-slate-800 hover:bg-slate-700 text-cyan-300'
-                  }">
-                  ${isBeingTracked ? 'Sedang Dilacak' : 'Lacak Warna Ini'}
-                </button>
-              </div>
-            </div>
+      // Render 3 Ikon Nyawa Bio-Shield (Mode Klasik)
+      if (gameState.mode === 'classic') {
+        let shieldsHTML = '';
+        for (let i = 0; i < 3; i++) {
+          const active = i < gameState.lives;
+          shieldsHTML += `
+            <svg class="w-5 h-5 transition-all ${active ? 'text-teal-400 scale-100' : 'text-slate-700 scale-90'}" viewBox="0 0 24 24" fill="${active ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
           `;
-        })
-        .join('');
-    }
+        }
+        hudLivesIcons.innerHTML = shieldsHTML;
 
-    // -------------------------------------------------------------------------
-    // 11. EKSPOR HASIL KANVAS (BESERTA SEMUA PENANDA) KE PNG
-    // -------------------------------------------------------------------------
-    function downloadCanvasAsPNG() {
-      // Pastikan frame tergambar bersih tanpa kursor bidik melayang saat diekspor
-      const prevPointerActive = state.pointer.active;
-      state.pointer.active = false;
-
-      ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-      ctx.drawImage(bufferCanvas, 0, 0);
-      drawOverlaysOnMainCanvas();
-
-      const dataUrl = mainCanvas.toDataURL('image/png');
-      state.pointer.active = prevPointerActive;
-
-      const now = new Date();
-      const pad = (n) => String(n).padStart(2, '0');
-      const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-      const filename = `detektor-virus-${stamp}.png`;
-
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      showToast(`Gambar kanvas berhasil diunduh (${filename})`, '#10B981');
-    }
-
-    // -------------------------------------------------------------------------
-    // 12. KONTROL DUAL MODE (SIMULASI VIRUS VS KAMERA WEBCAM)
-    // -------------------------------------------------------------------------
-    function switchMode(newMode) {
-      if (state.mode === newMode) return;
-      state.mode = newMode;
-      hideWebcamError();
-
-      if (newMode === 'simulasi') {
-        stopWebcamStream();
-        setCanvasDimensions(960, 540);
-
-        tabSimulasi.className =
-          'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow';
-        tabWebcam.className =
-          'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-400 hover:text-white';
-
-        simControls.classList.remove('hidden');
-        simControls.classList.add('flex');
-        webcamControls.classList.add('hidden');
-        webcamControls.classList.remove('flex');
-        specimenLegend.classList.remove('hidden');
-        webcamIdleOverlay.classList.add('hidden');
-
-        sourceStatusBadge.className =
-          'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-500/40';
-        sourceStatusDot.className = 'w-2 h-2 rounded-full bg-cyan-400 animate-pulse';
-        sourceStatusText.textContent = 'Simulasi Virus Aktif';
+        const total = gameState.deck.length;
+        const currentNum = Math.min(gameState.currentIndex + 1, total);
+        hudProgressLabel.textContent = `Soal ${currentNum} dari ${total}`;
+        const pct = (gameState.history.length / total) * 100;
+        hudProgressBar.style.width = `${pct}%`;
       } else {
-        tabWebcam.className =
-          'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow';
-        tabSimulasi.className =
-          'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-400 hover:text-white';
-
-        simControls.classList.add('hidden');
-        simControls.classList.remove('flex');
-        webcamControls.classList.remove('hidden');
-        webcamControls.classList.add('flex');
-        specimenLegend.classList.add('hidden');
-
-        if (!state.isWebcamStreaming) {
-          webcamIdleOverlay.classList.remove('hidden');
-          sourceStatusBadge.className =
-            'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800';
-          sourceStatusDot.className = 'w-2 h-2 rounded-full bg-slate-500';
-          sourceStatusText.textContent = 'Webcam Siaga';
-        }
+        hudProgressLabel.textContent = `Kartu Tersortir: ${gameState.history.length}`;
+        const pct = Math.min(100, (gameState.timeLeft / 60) * 100);
+        hudProgressBar.style.width = `${pct}%`;
       }
     }
 
-    async function populateCameraList() {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const cams = devices.filter((d) => d.kind === 'videoinput');
-        if (cams.length > 1) {
-          selectCameraDevice.innerHTML = cams
-            .map((cam, idx) => {
-              const label = cam.label || `Kamera ${idx + 1}`;
-              const sel = cam.deviceId === state.selectedDeviceId ? 'selected' : '';
-              return `<option value="${cam.deviceId}" ${sel}>${label}</option>`;
-            })
-            .join('');
-          selectCameraDevice.classList.remove('hidden');
+    // -------------------------------------------------------------------------
+    // 7. RENDER KARTU & PROSES PENYORTIRAN JAWABAN
+    // -------------------------------------------------------------------------
+    function renderCurrentCard() {
+      // Pada Time Attack, jika dek 24 kartu habis sebelum waktu habis, acak ulang dek baru
+      if (gameState.currentIndex >= gameState.deck.length) {
+        if (gameState.mode === 'timeattack') {
+          gameState.deck = shuffleArray(VIRUS_CARDS_DB);
+          gameState.currentIndex = 0;
         } else {
-          selectCameraDevice.classList.add('hidden');
+          finishGame();
+          return;
         }
-      } catch (e) {
-        // Abaikan jika browser membatasi daftar perangkat
-      }
-    }
-
-    function showWebcamError(title, desc, tip) {
-      webcamErrorTitle.textContent = title;
-      webcamErrorDesc.textContent = desc;
-      webcamErrorTip.textContent = tip;
-      webcamErrorBox.classList.remove('hidden');
-    }
-
-    function hideWebcamError() {
-      webcamErrorBox.classList.add('hidden');
-    }
-
-    async function startWebcamStream() {
-      hideWebcamError();
-
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showWebcamError(
-          'Browser Tidak Mendukung API Kamera',
-          'Browser Anda tidak menyediakan antarmuka navigator.mediaDevices.getUserMedia.',
-          'Gunakan Google Chrome, Firefox, Edge, atau Safari versi terbaru melalui koneksi HTTPS atau localhost.'
-        );
-        return;
       }
 
-      stopWebcamStream();
-      btnToggleWebcam.disabled = true;
-      btnToggleWebcam.textContent = 'Menghubungkan...';
+      const card = gameState.deck[gameState.currentIndex];
+      gameState.isLocked = false;
 
-      const constraints = state.selectedDeviceId
-        ? { video: { deviceId: { exact: state.selectedDeviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }
-        : { video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false };
+      // Reset tampilan kartu & stempel drag
+      caseCard.style.transform = '';
+      caseCard.style.transition = '';
+      caseCard.className = 'draggable-card relative rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-700/90 p-6 sm:p-8 shadow-2xl space-y-5 animate-card-in';
+      dragStampBeneficial.style.opacity = '0';
+      dragStampHarmful.style.opacity = '0';
+      resetDropZoneHighlights();
 
-      try {
-        let stream;
-        try {
-          stream = await navigator.mediaDevices.getUserMedia(constraints);
-        } catch (errConstraint) {
-          if (errConstraint.name === 'OverconstrainedError') {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-          } else {
-            throw errConstraint;
-          }
+      // Sembunyikan panel feedback
+      feedbackPanel.classList.add('hidden');
+      timeattackAutoBarWrap.classList.add('hidden');
+
+      // Aktifkan tombol pilihan
+      btnChooseBeneficial.disabled = false;
+      btnChooseHarmful.disabled = false;
+
+      // Isi konten kartu
+      cardCategoryBadge.textContent = card.category;
+      cardIconContainer.innerHTML = DOMAIN_ICONS[card.icon] || DOMAIN_ICONS.phage;
+      cardTitle.textContent = card.title;
+      cardDescription.textContent = card.description;
+
+      updateHUD();
+    }
+
+    function submitAnswer(userChoice) {
+      if (gameState.isLocked) return;
+      gameState.isLocked = true;
+
+      btnChooseBeneficial.disabled = true;
+      btnChooseHarmful.disabled = true;
+      dragStampBeneficial.style.opacity = '0';
+      dragStampHarmful.style.opacity = '0';
+      resetDropZoneHighlights();
+
+      const card = gameState.deck[gameState.currentIndex];
+      const isCorrect = userChoice === card.type;
+
+      // Catat riwayat jawaban
+      gameState.history.push({
+        card,
+        userChoice,
+        isCorrect
+      });
+
+      if (isCorrect) {
+        gameState.streak += 1;
+        if (gameState.streak > gameState.bestStreak) {
+          gameState.bestStreak = gameState.streak;
         }
 
-        state.webcamStream = stream;
-        videoEl.srcObject = stream;
+        const multiplier = getStreakMultiplier(gameState.streak);
+        const pointsEarned = Math.round(100 * multiplier);
+        gameState.score += pointsEarned;
 
-        const track = stream.getVideoTracks()[0];
-        if (track && track.getSettings && track.getSettings().deviceId) {
-          state.selectedDeviceId = track.getSettings().deviceId;
+        spawnDeltaPopup(scoreDeltaAnchor, `+${pointsEarned}`, 'text-emerald-400');
+
+        if (gameState.streak >= 3) {
+          soundFX.playStreak();
+          spawnConfettiBurst(caseCard);
+        } else {
+          soundFX.playCorrect();
         }
 
-        await new Promise((resolve) => {
-          if (videoEl.readyState >= 1) resolve();
-          else videoEl.onloadedmetadata = () => resolve();
+        // Bonus waktu +2 detik pada mode Time Attack jika streak >= 2
+        if (gameState.mode === 'timeattack' && gameState.streak >= 2) {
+          gameState.timeLeft = Math.min(99.9, +(gameState.timeLeft + 2.0).toFixed(1));
+          updateTimerDisplay();
+          spawnDeltaPopup(timerDeltaAnchor, '+2.0s Streak!', 'text-emerald-400');
+        }
+
+        // Visual kartu benar
+        caseCard.style.transform = '';
+        caseCard.className = 'relative rounded-3xl bg-gradient-to-b from-emerald-950/70 to-slate-950 border-2 border-emerald-400 p-6 sm:p-8 shadow-2xl space-y-5 animate-correct';
+      } else {
+        gameState.streak = 0;
+        soundFX.playWrong();
+
+        // Penalti sesuai mode
+        if (gameState.mode === 'classic') {
+          gameState.lives = Math.max(0, gameState.lives - 1);
+        } else {
+          gameState.timeLeft = Math.max(0, +(gameState.timeLeft - 3.0).toFixed(1));
+          updateTimerDisplay();
+          spawnDeltaPopup(timerDeltaAnchor, '-3.0s', 'text-rose-400');
+        }
+
+        // Visual kartu salah (efek getar)
+        caseCard.style.transform = '';
+        caseCard.className = 'relative rounded-3xl bg-gradient-to-b from-rose-950/70 to-slate-950 border-2 border-rose-500 p-6 sm:p-8 shadow-2xl space-y-5 animate-shake';
+      }
+
+      updateHUD();
+      showFeedbackPanel(card, isCorrect);
+    }
+
+    function showFeedbackPanel(card, isCorrect) {
+      const correctLabel = card.type === 'beneficial' ? 'MENGUNTUNGKAN' : 'MERUGIKAN';
+
+      if (isCorrect) {
+        feedbackPanel.className = 'rounded-3xl border border-emerald-500/50 bg-emerald-950/45 p-5 sm:p-6 shadow-2xl space-y-4 animate-card-in';
+        feedbackIconBadge.className = 'w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center shrink-0';
+        feedbackIconBadge.innerHTML = `
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>`;
+        feedbackStatusTitle.className = 'font-display font-extrabold text-lg sm:text-xl text-emerald-300';
+        feedbackStatusTitle.textContent = gameState.streak >= 3 ? `Tepat Sekali! (Combo ${gameState.streak}x)` : 'Jawaban Benar!';
+      } else {
+        feedbackPanel.className = 'rounded-3xl border border-rose-500/50 bg-rose-950/45 p-5 sm:p-6 shadow-2xl space-y-4 animate-card-in';
+        feedbackIconBadge.className = 'w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0';
+        feedbackIconBadge.innerHTML = `
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>`;
+        feedbackStatusTitle.className = 'font-display font-extrabold text-lg sm:text-xl text-rose-300';
+        feedbackStatusTitle.textContent = 'Kurang Tepat!';
+      }
+
+      feedbackClassificationLabel.textContent = `Klasifikasi Tepat: ${correctLabel} (${card.category})`;
+      feedbackExplanationText.textContent = ` ${card.explanation}`;
+
+      // Cek apakah permainan berakhir pada Mode Klasik (nyawa habis atau soal ke-15 selesai)
+      const isClassicEnded =
+        gameState.mode === 'classic' &&
+        (gameState.lives <= 0 || gameState.currentIndex + 1 >= gameState.deck.length);
+
+      if (isClassicEnded) {
+        nextCardBtnLabel.textContent = 'Lihat Hasil Akhir';
+      } else {
+        nextCardBtnLabel.textContent = 'Kartu Berikutnya';
+      }
+
+      feedbackPanel.classList.remove('hidden');
+
+      // Pada Mode Time Attack, lanjut otomatis dalam 1.4 detik sambil tetap memberi ringkasan cepat
+      if (gameState.mode === 'timeattack' && gameState.timeLeft > 0) {
+        timeattackAutoBarWrap.classList.remove('hidden');
+        timeattackAutoBar.style.transition = 'none';
+        timeattackAutoBar.style.width = '100%';
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            timeattackAutoBar.style.transition = 'width 1.4s linear';
+            timeattackAutoBar.style.width = '0%';
+          });
         });
 
-        await videoEl.play();
-        setCanvasDimensions(videoEl.videoWidth || 1280, videoEl.videoHeight || 720);
+        gameState.autoNextTimeout = setTimeout(() => {
+          advanceToNextCard();
+        }, 1450);
+      }
+    }
 
-        state.isWebcamStreaming = true;
-        webcamIdleOverlay.classList.add('hidden');
+    function advanceToNextCard() {
+      if (!gameState.isLocked) return;
+      if (gameState.autoNextTimeout) {
+        clearTimeout(gameState.autoNextTimeout);
+        gameState.autoNextTimeout = null;
+      }
 
-        btnToggleWebcam.textContent = 'Hentikan Kamera';
-        btnToggleWebcam.className =
-          'px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow transition-colors';
-
-        sourceStatusBadge.className =
-          'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950/90 text-emerald-300 border border-emerald-500/40';
-        sourceStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
-        sourceStatusText.textContent = 'Webcam LIVE';
-
-        await populateCameraList();
-      } catch (err) {
-        let title = 'Gagal Mengaktifkan Kamera';
-        let desc = err && err.message ? err.message : 'Terjadi kendala saat mengakses webcam.';
-        let tip = 'Pastikan izin kamera diberikan pada browser Anda.';
-
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          title = 'Izin Akses Kamera Ditolak';
-          desc = 'Permintaan akses kamera ditolak oleh pengguna atau pengaturan keamanan browser.';
-          tip = 'Klik ikon gembok/kamera di bilah alamat browser, izinkan akses Kamera, lalu tekan "Mulai Kamera".';
-        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-          title = 'Perangkat Kamera Tidak Ditemukan';
-          desc = 'Tidak ada perangkat webcam yang terdeteksi pada komputer atau ponsel Anda.';
-          tip = 'Pastikan webcam terpasang dengan benar atau aktifkan kamera pada pengaturan perangkat.';
-        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-          title = 'Kamera Sedang Dipakai Aplikasi Lain';
-          desc = 'Webcam sedang digunakan oleh aplikasi lain (seperti Zoom, Meet, atau tab browser lain).';
-          tip = 'Tutup aplikasi lain yang menggunakan kamera, lalu coba mulai kembali.';
+      if (gameState.mode === 'classic') {
+        if (gameState.lives <= 0 || gameState.currentIndex + 1 >= gameState.deck.length) {
+          finishGame();
+          return;
         }
-
-        showWebcamError(title, desc, tip);
-        stopWebcamStream();
-      } finally {
-        btnToggleWebcam.disabled = false;
+      } else if (gameState.timeLeft <= 0) {
+        finishGame();
+        return;
       }
-    }
 
-    function stopWebcamStream() {
-      if (state.webcamStream) {
-        state.webcamStream.getTracks().forEach((t) => t.stop());
-        state.webcamStream = null;
-      }
-      videoEl.srcObject = null;
-      state.isWebcamStreaming = false;
-
-      btnToggleWebcam.textContent = 'Mulai Kamera';
-      btnToggleWebcam.className =
-        'px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow transition-colors';
-
-      if (state.mode === 'webcam') {
-        webcamIdleOverlay.classList.remove('hidden');
-        sourceStatusBadge.className =
-          'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800';
-        sourceStatusDot.className = 'w-2 h-2 rounded-full bg-slate-500';
-        sourceStatusText.textContent = 'Webcam Nonaktif';
-      }
+      gameState.currentIndex += 1;
+      renderCurrentCard();
     }
 
     // -------------------------------------------------------------------------
-    // 13. KONTROL PELACAKAN WARNA & NOTIFIKASI TOAST
+    // 8. MEKANISME DRAG & DROP KARTU (MOUSE & LAYAR SENTUH / TOUCH)
     // -------------------------------------------------------------------------
-    function setTrackingEnabled(enabled) {
-      state.trackingEnabled = enabled;
-      btnToggleTracking.setAttribute('aria-checked', String(enabled));
+    let isDragging = false;
+    let dragStartX = 0;
+    let currentDeltaX = 0;
+    const SWIPE_THRESHOLD = 90;
 
-      if (enabled) {
-        trackingSwitchPill.classList.remove('bg-slate-700');
-        trackingSwitchPill.classList.add('bg-cyan-500');
-        trackingSwitchKnob.classList.remove('translate-x-0.5');
-        trackingSwitchKnob.classList.add('translate-x-4');
-        trackingSwitchLabel.textContent = 'Aktif';
-        trackingSwitchLabel.classList.remove('text-slate-300');
-        trackingSwitchLabel.classList.add('text-cyan-400');
+    function resetDropZoneHighlights() {
+      btnChooseBeneficial.classList.remove('ring-4', 'ring-emerald-400', 'bg-emerald-900/60', 'scale-[1.02]');
+      btnChooseHarmful.classList.remove('ring-4', 'ring-rose-400', 'bg-rose-900/60', 'scale-[1.02]');
+    }
 
-        if (state.trackedMarkerId === null && state.markers.length > 0) {
-          state.trackedMarkerId = state.markers[0].id;
-          updateTrackedColorUI();
+    function handleDragStart(clientX) {
+      if (gameState.isLocked) return;
+      isDragging = true;
+      dragStartX = clientX;
+      currentDeltaX = 0;
+      caseCard.style.transition = 'none';
+    }
+
+    function handleDragMove(clientX) {
+      if (!isDragging || gameState.isLocked) return;
+      currentDeltaX = clientX - dragStartX;
+
+      const rotation = currentDeltaX * 0.045;
+      caseCard.style.transform = `translateX(${currentDeltaX}px) rotate(${rotation}deg)`;
+
+      const progress = Math.min(1, Math.abs(currentDeltaX) / SWIPE_THRESHOLD);
+
+      if (currentDeltaX < -15) {
+        // Mengarah ke Kiri (Menguntungkan)
+        dragStampBeneficial.style.opacity = String(progress);
+        dragStampHarmful.style.opacity = '0';
+        caseCard.style.borderColor = '#34d399';
+        btnChooseBeneficial.classList.add('ring-4', 'ring-emerald-400', 'bg-emerald-900/60', 'scale-[1.02]');
+        btnChooseHarmful.classList.remove('ring-4', 'ring-rose-400', 'bg-rose-900/60', 'scale-[1.02]');
+      } else if (currentDeltaX > 15) {
+        // Mengarah ke Kanan (Merugikan)
+        dragStampHarmful.style.opacity = String(progress);
+        dragStampBeneficial.style.opacity = '0';
+        caseCard.style.borderColor = '#fb7185';
+        btnChooseHarmful.classList.add('ring-4', 'ring-rose-400', 'bg-rose-900/60', 'scale-[1.02]');
+        btnChooseBeneficial.classList.remove('ring-4', 'ring-emerald-400', 'bg-emerald-900/60', 'scale-[1.02]');
+      } else {
+        dragStampBeneficial.style.opacity = '0';
+        dragStampHarmful.style.opacity = '0';
+        caseCard.style.borderColor = '';
+        resetDropZoneHighlights();
+      }
+    }
+
+    function handleDragEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      caseCard.style.borderColor = '';
+
+      if (gameState.isLocked) return;
+
+      if (currentDeltaX <= -SWIPE_THRESHOLD) {
+        submitAnswer('beneficial');
+      } else if (currentDeltaX >= SWIPE_THRESHOLD) {
+        submitAnswer('harmful');
+      } else {
+        // Kembalikan kartu ke posisi tengah secara mulus
+        caseCard.style.transition = 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)';
+        caseCard.style.transform = 'translateX(0px) rotate(0deg)';
+        dragStampBeneficial.style.opacity = '0';
+        dragStampHarmful.style.opacity = '0';
+        resetDropZoneHighlights();
+      }
+      currentDeltaX = 0;
+    }
+
+    // Mouse events untuk Drag & Drop
+    caseCard.addEventListener('mousedown', (e) => handleDragStart(e.clientX));
+    window.addEventListener('mousemove', (e) => handleDragMove(e.clientX));
+    window.addEventListener('mouseup', handleDragEnd);
+
+    // Touch events untuk layar sentuh mobile/tablet
+    caseCard.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        handleDragStart(e.touches[0].clientX);
+      }
+    }, { passive: true });
+
+    caseCard.addEventListener('touchmove', (e) => {
+      if (isDragging && e.touches.length === 1) {
+        handleDragMove(e.touches[0].clientX);
+      }
+    }, { passive: true });
+
+    caseCard.addEventListener('touchend', handleDragEnd);
+
+    // -------------------------------------------------------------------------
+    // 9. LAYAR HASIL AKHIR & EVALUASI REVIEW KARTU
+    // -------------------------------------------------------------------------
+    function finishGame() {
+      clearTimers();
+      soundFX.playFinish();
+
+      const totalAnswered = gameState.history.length;
+      const correctCount = gameState.history.filter((h) => h.isCorrect).length;
+      const wrongCount = totalAnswered - correctCount;
+      const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+
+      // Tentukan Gelar Peringkat Pemain
+      let rankTitle = 'Praktikan Pemula';
+      let rankSubtitle = 'Terus berlatih! Baca kembali ringkasan materi dan pembahasan di bawah untuk menguasai peranan virus.';
+
+      if (accuracy >= 90 && totalAnswered >= 8) {
+        rankTitle = 'Master Virologi';
+        rankSubtitle = 'Luar biasa! Ketepatan analisismu setara peneliti ahli virologi dan bioteknologi modern.';
+      } else if (accuracy >= 75 && totalAnswered >= 5) {
+        rankTitle = 'Peneliti Bioteknologi';
+        rankSubtitle = 'Sangat baik! Kamu sudah memahami perbedaan peranan virus yang menguntungkan dan merugikan dengan kuat.';
+      } else if (accuracy >= 55) {
+        rankTitle = 'Asisten Laboratorium';
+        rankSubtitle = 'Cukup baik! Cermati kembali beberapa kartu yang masih keliru untuk meningkatkan akurasimu.';
+      }
+
+      document.getElementById('result-mode-badge').textContent =
+        gameState.mode === 'classic' ? 'Hasil Evaluasi • Mode Klasik' : 'Hasil Evaluasi • Mode Tantangan Cepat';
+      document.getElementById('result-rank-title').textContent = rankTitle;
+      document.getElementById('result-rank-subtitle').textContent = rankSubtitle;
+
+      document.getElementById('stat-total-score').textContent = gameState.score;
+      document.getElementById('stat-correct-count').textContent = correctCount;
+      document.getElementById('stat-wrong-count').textContent = wrongCount;
+      document.getElementById('stat-accuracy').textContent = `${accuracy}%`;
+      document.getElementById('stat-best-streak').textContent = gameState.bestStreak;
+
+      document.getElementById('count-review-all').textContent = totalAnswered;
+      document.getElementById('count-review-wrong').textContent = wrongCount;
+
+      renderReviewList('all');
+      showScreen('results');
+    }
+
+    function renderReviewList(filterType) {
+      gameState.reviewFilter = filterType;
+      const btnAll = document.getElementById('filter-review-all');
+      const btnWrong = document.getElementById('filter-review-wrong');
+
+      if (filterType === 'all') {
+        btnAll.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-teal-500 text-slate-950 transition-all';
+        btnWrong.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition-all';
+      } else {
+        btnWrong.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-rose-500 text-white transition-all';
+        btnAll.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition-all';
+      }
+
+      const items = filterType === 'wrong'
+        ? gameState.history.filter((h) => !h.isCorrect)
+        : gameState.history;
+
+      const container = document.getElementById('review-list-container');
+
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="rounded-2xl bg-slate-950/60 border border-slate-800 p-8 text-center text-slate-400 text-sm">
+            ${filterType === 'wrong'
+              ? 'Sempurna! Tidak ada jawaban yang salah pada sesi permainan ini.'
+              : 'Belum ada kartu yang dijawab pada sesi ini.'}
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = items.map((entry, idx) => {
+        const { card, userChoice, isCorrect } = entry;
+        const userLabel = userChoice === 'beneficial' ? 'Menguntungkan' : 'Merugikan';
+        const correctLabel = card.type === 'beneficial' ? 'Menguntungkan' : 'Merugikan';
+
+        return `
+          <div class="rounded-2xl border ${
+            isCorrect
+              ? 'border-emerald-500/30 bg-emerald-950/20'
+              : 'border-rose-500/40 bg-rose-950/25'
+          } p-5 space-y-3">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div class="space-y-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-cyan-400">
+                  #${idx + 1} • ${card.category}
+                </span>
+                <h4 class="font-display font-bold text-base sm:text-lg text-white">
+                  ${card.title}
+                </h4>
+              </div>
+
+              <span class="px-3 py-1 rounded-xl text-xs font-extrabold ${
+                isCorrect
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                  : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+              }">
+                ${isCorrect ? '✓ Benar' : '✗ Salah'}
+              </span>
+            </div>
+
+            <div class="flex flex-wrap gap-2 text-xs">
+              <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">
+                Jawabanmu: <strong class="${isCorrect ? 'text-emerald-400' : 'text-rose-400'}">${userLabel}</strong>
+              </span>
+              <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">
+                Kunci Jawaban: <strong class="text-teal-300">${correctLabel}</strong>
+              </span>
+            </div>
+
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              ${card.explanation}
+            </p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // -------------------------------------------------------------------------
+    // 10. EVENT LISTENERS (TOMBOL, MODAL & PINTASAN KEYBOARD)
+    // -------------------------------------------------------------------------
+    document.getElementById('start-classic-btn').addEventListener('click', () => startGame('classic'));
+    document.getElementById('start-timeattack-btn').addEventListener('click', () => startGame('timeattack'));
+
+    btnChooseBeneficial.addEventListener('click', () => submitAnswer('beneficial'));
+    btnChooseHarmful.addEventListener('click', () => submitAnswer('harmful'));
+    nextCardBtn.addEventListener('click', () => {
+      soundFX.playClick();
+      advanceToNextCard();
+    });
+
+    // Navigasi kembali / keluar game
+    document.getElementById('brand-home-btn').addEventListener('click', () => {
+      if (!screenGame.classList.contains('hidden')) {
+        quitConfirmBar.classList.remove('hidden');
+      } else {
+        clearTimers();
+        showScreen('lobby');
+      }
+    });
+
+    document.getElementById('quit-game-btn').addEventListener('click', () => {
+      soundFX.playClick();
+      quitConfirmBar.classList.remove('hidden');
+    });
+
+    document.getElementById('confirm-quit-yes').addEventListener('click', () => {
+      soundFX.playClick();
+      clearTimers();
+      showScreen('lobby');
+    });
+
+    document.getElementById('confirm-quit-no').addEventListener('click', () => {
+      soundFX.playClick();
+      quitConfirmBar.classList.add('hidden');
+    });
+
+    // Tombol Layar Hasil
+    document.getElementById('play-again-btn').addEventListener('click', () => startGame(gameState.mode));
+    document.getElementById('back-to-menu-btn').addEventListener('click', () => {
+      soundFX.playClick();
+      showScreen('lobby');
+    });
+
+    document.getElementById('filter-review-all').addEventListener('click', () => renderReviewList('all'));
+    document.getElementById('filter-review-wrong').addEventListener('click', () => renderReviewList('wrong'));
+
+    // Modal Ringkasan Materi
+    function openGuideModal() {
+      soundFX.playClick();
+      guideModal.classList.remove('hidden');
+    }
+    function closeGuideModal() {
+      soundFX.playClick();
+      guideModal.classList.add('hidden');
+    }
+
+    document.getElementById('header-guide-btn').addEventListener('click', openGuideModal);
+    document.getElementById('lobby-guide-btn').addEventListener('click', openGuideModal);
+    document.getElementById('close-guide-btn').addEventListener('click', closeGuideModal);
+    document.getElementById('close-guide-footer-btn').addEventListener('click', closeGuideModal);
+    guideModal.addEventListener('click', (e) => {
+      if (e.target === guideModal) closeGuideModal();
+    });
+
+    // Mute / Unmute Suara
+    document.getElementById('mute-toggle-btn').addEventListener('click', () => {
+      soundFX.muted = !soundFX.muted;
+      document.getElementById('icon-sound-on').classList.toggle('hidden', soundFX.muted);
+      document.getElementById('icon-sound-off').classList.toggle('hidden', !soundFX.muted);
+      if (!soundFX.muted) soundFX.playClick();
+    });
+
+    // Pintasan Keyboard (Panah Kiri / A, Panah Kanan / D, Spasi / Enter)
+    window.addEventListener('keydown', (e) => {
+      // Tutup modal dengan Escape
+      if (e.key === 'Escape' && !guideModal.classList.contains('hidden')) {
+        closeGuideModal();
+        return;
+      }
+
+      // Abaikan pintasan gameplay jika modal ringkasan sedang terbuka atau tidak di layar game
+      if (!guideModal.classList.contains('hidden')) return;
+      if (screenGame.classList.contains('hidden')) return;
+
+      if (!gameState.isLocked) {
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+          e.preventDefault();
+          submitAnswer('beneficial');
+        } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+          e.preventDefault();
+          submitAnswer('harmful');
         }
       } else {
-        trackingSwitchPill.classList.remove('bg-cyan-500');
-        trackingSwitchPill.classList.add('bg-slate-700');
-        trackingSwitchKnob.classList.remove('translate-x-4');
-        trackingSwitchKnob.classList.add('translate-x-0.5');
-        trackingSwitchLabel.textContent = 'Nonaktif';
-        trackingSwitchLabel.classList.remove('text-cyan-400');
-        trackingSwitchLabel.classList.add('text-slate-300');
-        state.trackingResult = null;
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          advanceToNextCard();
+        }
       }
-      renderMarkersSidebar();
-    }
-
-    function showToast(message, swatchHex = '#06B6D4') {
-      toastText.textContent = message;
-      toastSwatch.style.backgroundColor = swatchHex;
-      toastBox.classList.remove('hidden');
-
-      if (state.toastTimer) clearTimeout(state.toastTimer);
-      state.toastTimer = setTimeout(() => {
-        toastBox.classList.add('hidden');
-      }, 3600);
-    }
-
-    // -------------------------------------------------------------------------
-    // 14. EVENT LISTENERS & INISIALISASI HALAMAN
-    // -------------------------------------------------------------------------
-    tabSimulasi.addEventListener('click', () => switchMode('simulasi'));
-    tabWebcam.addEventListener('click', () => switchMode('webcam'));
-
-    btnToggleAnim.addEventListener('click', () => {
-      state.isSimAnimating = !state.isSimAnimating;
-      animIcon.textContent = state.isSimAnimating ? '⏸' : '▶';
-      animLabel.textContent = state.isSimAnimating ? 'Jeda Animasi' : 'Gerakkan Animasi';
-    });
-
-    btnRandomizePos.addEventListener('click', () => {
-      initSimViruses(true);
-      showToast('Posisi keenam spesimen virus telah diacak ulang.', '#06B6D4');
-    });
-
-    btnToggleWebcam.addEventListener('click', () => {
-      if (state.isWebcamStreaming) stopWebcamStream();
-      else startWebcamStream();
-    });
-
-    btnOverlayStartCam.addEventListener('click', () => {
-      startWebcamStream();
-    });
-
-    chkMirror.addEventListener('change', (e) => {
-      state.isMirrored = e.target.checked;
-    });
-
-    selectCameraDevice.addEventListener('change', (e) => {
-      state.selectedDeviceId = e.target.value;
-      if (state.isWebcamStreaming) startWebcamStream();
-    });
-
-    btnCloseWebcamError.addEventListener('click', hideWebcamError);
-
-    btnToggleTracking.addEventListener('click', () => {
-      setTrackingEnabled(!state.trackingEnabled);
-    });
-
-    sliderTolerance.addEventListener('input', (e) => {
-      state.colorTolerance = Number(e.target.value);
-      toleranceValueLabel.textContent = String(state.colorTolerance);
-    });
-
-    btnDownloadPng.addEventListener('click', downloadCanvasAsPNG);
-    btnClearAll.addEventListener('click', clearAllMarkers);
-
-    window.addEventListener('beforeunload', () => {
-      stopWebcamStream();
-    });
-
-    // Jalankan aplikasi saat halaman dimuat
-    window.addEventListener('DOMContentLoaded', () => {
-      initSimViruses(false);
-      renderMarkersSidebar();
-      requestAnimationFrame(mainRenderLoop);
     });
   </script>
 </body>
