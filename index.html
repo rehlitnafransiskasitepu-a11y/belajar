@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Webcam Canvas Studio — Tangkapan Kamera Real-Time</title>
+  <title>Detektor Warna &amp; Penanda Posisi Virus</title>
 
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -18,287 +18,302 @@
         extend: {
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
           },
         },
       },
     };
   </script>
+
+  <style>
+    /* Kustomisasi scrollbar halus untuk panel riwayat */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(71, 85, 105, 0.7);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(6, 182, 212, 0.8);
+    }
+  </style>
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-slate-950 flex flex-col">
 
   <!-- ===================================================================== -->
-  <!-- HEADER APLIKASI                                                       -->
+  <!-- HEADER APLIKASI LABORATORIUM DIGITAL                                  -->
   <!-- ===================================================================== -->
-  <header class="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-md">
+  <header class="sticky top-0 z-30 border-b border-slate-800/90 bg-slate-950/90 backdrop-blur-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
-      <!-- Logo & Judul -->
+      <!-- Identitas Aplikasi -->
       <div class="flex items-center gap-3 min-w-0">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 shrink-0">
-          <!-- Ikon Kamera SVG -->
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-teal-500 to-emerald-500 flex items-center justify-center text-slate-950 shadow-lg shadow-cyan-500/20 shrink-0">
+          <!-- Ikon Mikroskop / Target Bidik SVG -->
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <circle cx="12" cy="12" r="7" />
+            <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+            <line x1="12" y1="2" x2="12" y2="5" />
+            <line x1="12" y1="19" x2="12" y2="22" />
+            <line x1="2" y1="12" x2="5" y2="12" />
+            <line x1="19" y1="12" x2="22" y2="12" />
           </svg>
         </div>
         <div class="truncate">
-          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white truncate">
-            Webcam Canvas Studio
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white truncate">
+            Detektor Warna &amp; Penanda Posisi Virus
           </h1>
           <p class="text-xs text-slate-400 hidden sm:block">
-            Pemrosesan Video Real-Time HTML5 Canvas &amp; getUserMedia
+            Analisis Piksel Kanvas Interaktif, Penanda Koordinat &amp; Pelacakan Objek Real-Time
           </p>
         </div>
       </div>
 
-      <!-- Indikator Status & Resolusi -->
+      <!-- Status Sumber & Dimensi Kanvas -->
       <div class="flex items-center gap-2.5 shrink-0">
-        <span id="resolution-badge" class="hidden md:inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-slate-900 text-slate-300 border border-slate-800">
-          0 &times; 0 px
+        <span id="canvas-dim-badge" class="hidden md:inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-slate-900 text-slate-300 border border-slate-800">
+          960 &times; 540 px
         </span>
 
-        <div id="status-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800">
-          <span id="status-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
-          <span id="status-text">Kamera Nonaktif</span>
+        <div id="source-status-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-500/40">
+          <span id="source-status-dot" class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          <span id="source-status-text">Simulasi Virus Aktif</span>
         </div>
       </div>
     </div>
   </header>
 
   <!-- ===================================================================== -->
-  <!-- KONTEN UTAMA (CANVAS VIEWPORT & PANEL KONTROL)                        -->
+  <!-- NOTIFIKASI TOAST NON-BLOCKING                                         -->
   <!-- ===================================================================== -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+  <div id="toast-container" aria-live="polite" class="fixed bottom-5 right-5 z-50 pointer-events-none flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0">
+    <div id="toast-box" class="hidden pointer-events-auto rounded-2xl bg-slate-900/95 backdrop-blur-md border border-cyan-500/50 px-4 py-3.5 shadow-2xl flex items-center gap-3 text-xs sm:text-sm text-slate-100 transition-all">
+      <span id="toast-swatch" class="w-4 h-4 rounded-md bg-cyan-400 shrink-0 border border-white/30"></span>
+      <span id="toast-text" class="flex-1 font-medium">Notifikasi</span>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- KONTEN UTAMA (2 KOLOM DI DESKTOP, 1 KOLOM DI PONSEL)                  -->
+  <!-- ===================================================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
       <!-- ================================================================= -->
-      <!-- KOLOM KIRI: AREA TAMPILAN <CANVAS> REAL-TIME                      -->
+      <!-- KOLOM KIRI (8 KOLOM): DUAL MODE KANVAS, VIEWPORT & PELACAKAN       -->
       <!-- ================================================================= -->
       <section class="lg:col-span-8 space-y-4">
-        <div class="relative w-full aspect-video bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex items-center justify-center">
+
+        <!-- Bar Kontrol Sumber Kanvas (Dual Mode Switcher) -->
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-3 sm:p-4 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           
-          <!-- Elemen Video Tersembunyi sebagai Sumber Stream Webcam -->
+          <!-- Tab Pilihan Sumber -->
+          <div class="inline-flex p-1 rounded-xl bg-slate-950 border border-slate-800 self-start sm:self-auto w-full sm:w-auto">
+            <button type="button" id="tab-simulasi" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow">
+              1. Simulasi Virus
+            </button>
+            <button type="button" id="tab-webcam" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-400 hover:text-white">
+              2. Kamera Webcam
+            </button>
+          </div>
+
+          <!-- Kontrol Khusus Mode Simulasi Virus -->
+          <div id="sim-controls" class="flex flex-wrap items-center gap-2">
+            <button type="button" id="btn-toggle-anim" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-100 transition-colors flex items-center gap-1.5">
+              <span id="anim-icon">⏸</span>
+              <span id="anim-label">Jeda Animasi</span>
+            </button>
+            <button type="button" id="btn-randomize-pos" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-cyan-300 transition-colors flex items-center gap-1.5">
+              <span>↻</span>
+              <span>Acak Posisi</span>
+            </button>
+          </div>
+
+          <!-- Kontrol Khusus Mode Kamera Webcam -->
+          <div id="webcam-controls" class="hidden flex-wrap items-center gap-2.5">
+            <button type="button" id="btn-toggle-webcam" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow transition-colors">
+              Mulai Kamera
+            </button>
+
+            <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-semibold text-slate-300 cursor-pointer select-none">
+              <input type="checkbox" id="chk-mirror" checked class="accent-cyan-500 w-3.5 h-3.5 rounded" />
+              <span>Cermin (Mirror)</span>
+            </label>
+
+            <select id="select-camera-device" aria-label="Pilih Perangkat Kamera" class="hidden px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 max-w-[170px]">
+            </select>
+          </div>
+        </div>
+
+        <!-- Kotak Pesan Error Kamera (Tersembunyi Secara Default) -->
+        <div id="webcam-error-box" role="alert" class="hidden rounded-2xl bg-rose-950/80 border border-rose-500/50 p-4 text-rose-100 shadow-lg">
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5 font-bold">
+              !
+            </div>
+            <div class="flex-1 space-y-1">
+              <h3 id="webcam-error-title" class="text-sm font-bold text-rose-200">
+                Kendala Akses Kamera
+              </h3>
+              <p id="webcam-error-desc" class="text-xs text-rose-200/90 leading-relaxed">
+                Tidak dapat membuka kamera.
+              </p>
+              <p id="webcam-error-tip" class="text-[11px] text-rose-300/80">
+                Periksa izin kamera pada browser Anda.
+              </p>
+            </div>
+            <button type="button" id="btn-close-webcam-error" aria-label="Tutup pesan error" class="px-2 py-1 rounded-lg text-xs text-rose-300 hover:bg-rose-500/20">
+              Tutup
+            </button>
+          </div>
+        </div>
+
+        <!-- Viewport Kanvas Interaktif Utama -->
+        <div id="canvas-wrapper" style="aspect-ratio: 16 / 9;" class="relative w-full bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden select-none">
+          
+          <!-- Elemen Video Tersembunyi untuk Stream Webcam -->
           <video id="webcam-video" autoplay playsinline muted class="hidden"></video>
 
-          <!-- Elemen Canvas Utama untuk Menampilkan Video Real-Time -->
-          <canvas id="webcam-canvas" class="w-full h-full object-contain block bg-slate-950"></canvas>
+          <!-- Elemen Kanvas Utama -->
+          <canvas id="main-canvas" width="960" height="540" class="w-full h-full block cursor-crosshair touch-none"></canvas>
 
-          <!-- Efek Kilatan Rana (Shutter Flash) saat Mengambil Foto -->
-          <div id="shutter-flash" class="pointer-events-none absolute inset-0 bg-white opacity-0 transition-opacity duration-200"></div>
-
-          <!-- HUD Overlay Saat Kamera Aktif -->
-          <div id="canvas-hud" class="hidden pointer-events-none absolute top-4 left-4 right-4 flex flex-wrap items-center justify-between gap-2">
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/75 backdrop-blur-md border border-white/10 text-xs font-medium text-slate-200">
-              <span class="text-cyan-400 font-semibold" id="hud-filter-label">Filter: Normal</span>
-              <span class="text-slate-600">|</span>
-              <span id="hud-mirror-label">Cermin: Aktif</span>
-            </div>
-
-            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950/75 backdrop-blur-md border border-white/10 text-xs font-mono text-emerald-400">
-              <span id="hud-fps">0 FPS</span>
-            </div>
-          </div>
-
-          <!-- Placeholder Overlay Saat Kamera Belum Dimulai -->
-          <div id="camera-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 sm:p-10 bg-gradient-to-b from-slate-900/95 to-slate-950/95">
-            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-cyan-400 mb-5 shadow-inner">
-              <svg class="w-8 h-8 sm:w-10 sm:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          <!-- Overlay Petunjuk Singkat Saat Webcam Belum Dimulai -->
+          <div id="webcam-idle-overlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6">
+            <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400 mb-4">
+              <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 class="text-lg sm:text-xl font-bold text-white mb-2">
-              Pratinjau Canvas Siap Digunakan
+            <h2 class="text-base sm:text-lg font-bold text-white mb-1.5">
+              Mode Kamera Webcam Siap
             </h2>
-            <p class="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
-              Tekan tombol <strong class="text-slate-200">Mulai Kamera</strong> untuk mengaktifkan webcam dan merender setiap frame video secara langsung ke dalam elemen <code class="text-cyan-400 bg-slate-800 px-1.5 py-0.5 rounded">&lt;canvas&gt;</code>.
+            <p class="text-xs sm:text-sm text-slate-400 max-w-md mb-5 leading-relaxed">
+              Aktifkan kamera untuk menampilkan video secara real-time di kanvas, lalu klik benda berwarna apa pun untuk menyimpan warnanya dan menandai posisinya.
             </p>
-            <button type="button" id="placeholder-start-btn" class="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95">
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Mulai Kamera Sekarang
+            <button type="button" id="btn-overlay-start-cam" class="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg transition-all">
+              Aktifkan Kamera Sekarang
             </button>
           </div>
         </div>
 
-        <!-- Kotak Pesan Error (Tersembunyi Secara Default) -->
-        <div id="error-alert" role="alert" class="hidden rounded-2xl bg-rose-950/70 border border-rose-500/40 p-4 sm:p-5 text-rose-100 shadow-lg">
-          <div class="flex items-start gap-3.5">
-            <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div class="flex-1 space-y-1.5">
-              <h3 id="error-title" class="font-bold text-sm sm:text-base text-rose-200">
-                Gagal Mengakses Kamera
-              </h3>
-              <p id="error-message" class="text-xs sm:text-sm text-rose-200/90 leading-relaxed">
-                Terjadi kendala saat membuka perangkat kamera.
-              </p>
-              <p id="error-hint" class="text-xs text-rose-300/80 pt-1">
-                Pastikan izin kamera diaktifkan pada pengaturan browser Anda.
-              </p>
-            </div>
-            <button type="button" id="dismiss-error-btn" aria-label="Tutup pesan error" class="p-1.5 rounded-lg text-rose-300 hover:bg-rose-500/20 transition-colors">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+        <!-- Legenda Spesimen (Mode Simulasi) -->
+        <div id="specimen-legend" class="rounded-2xl bg-slate-900/80 border border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span class="font-semibold text-slate-400">Klik spesimen di kanvas:</span>
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span>Coronavirus</span>
+            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span>Bakteriofag</span>
+            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></span>Adenovirus</span>
+            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></span>Influenza</span>
+            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]"></span>Filovirus</span>
+            <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#06B6D4]"></span>Rabies</span>
           </div>
         </div>
 
-        <!-- Notifikasi Toast Non-Blocking (Untuk Konfirmasi Foto Diunduh) -->
-        <div id="toast-banner" class="hidden rounded-2xl bg-emerald-950/80 border border-emerald-500/40 px-4 py-3 text-emerald-100 flex items-center justify-between gap-3 shadow-lg">
-          <div class="flex items-center gap-2.5 text-xs sm:text-sm">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
-            <span id="toast-message">Foto berhasil ditangkap dan diunduh sebagai PNG.</span>
+        <!-- Panel Pelacakan Warna Otomatis (Real-Time Object Color Tracking) -->
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 sm:p-5 shadow-lg space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-sm font-bold text-white">Pelacakan Warna Otomatis (Real-Time)</h2>
+                <p class="text-xs text-slate-400">
+                  Lacak posisi benda dengan warna serupa secara otomatis menggunakan kotak pelacak &amp; titik pusat (centroid).
+                </p>
+              </div>
+            </div>
+
+            <!-- Sakelar Toggle Pelacakan -->
+            <button type="button" id="btn-toggle-tracking" role="switch" aria-checked="false" class="self-start sm:self-center inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 hover:border-cyan-500/60 transition-all">
+              <span id="tracking-switch-pill" class="relative inline-flex h-5 w-9 shrink-0 rounded-full bg-slate-700 transition-colors">
+                <span id="tracking-switch-knob" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-0.5 mt-0.5"></span>
+              </span>
+              <span id="tracking-switch-label" class="text-xs font-bold text-slate-300">Nonaktif</span>
+            </button>
           </div>
-          <span class="text-xs font-mono text-emerald-300" id="toast-filename"></span>
+
+          <!-- Bar Detail Warna Dilacak & Slider Toleransi -->
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 pt-3 border-t border-slate-800/80 items-center">
+            <!-- Info Target Warna -->
+            <div class="sm:col-span-6 flex items-center gap-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+              <div id="tracked-color-swatch" class="w-9 h-9 rounded-lg bg-slate-800 border border-white/20 shrink-0"></div>
+              <div class="min-w-0 flex-1">
+                <div class="text-[11px] text-slate-400">Target Warna Dilacak:</div>
+                <div id="tracked-color-info" class="text-xs font-bold text-slate-200 truncate">
+                  Belum ada (klik virus di kanvas)
+                </div>
+              </div>
+            </div>
+
+            <!-- Slider Toleransi Warna -->
+            <div class="sm:col-span-6 space-y-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <label for="slider-tolerance" class="font-semibold text-slate-300">Toleransi Kemiripan Warna</label>
+                <span id="tolerance-value-label" class="font-mono font-bold text-cyan-400">42</span>
+              </div>
+              <input id="slider-tolerance" type="range" min="10" max="110" value="42" class="w-full accent-cyan-500 cursor-pointer h-2 bg-slate-800 rounded-lg" />
+            </div>
+          </div>
         </div>
       </section>
 
       <!-- ================================================================= -->
-      <!-- KOLOM KANAN: PANEL KONTROL & GALERI HASIL TANGKAPAN               -->
+      <!-- KOLOM KANAN (4 KOLOM): PANEL MANAJEMEN WARNA & POSISI TERSIMPAN   -->
       <!-- ================================================================= -->
-      <aside class="lg:col-span-4 space-y-5">
+      <aside class="lg:col-span-4 rounded-3xl bg-slate-900 border border-slate-800 p-5 shadow-xl flex flex-col gap-4">
         
-        <!-- Kartu Kontrol Utama -->
-        <div class="rounded-3xl bg-slate-900 border border-slate-800 p-5 sm:p-6 shadow-xl space-y-6">
-          
-          <!-- 1. Tombol Mulai / Hentikan Kamera & Pemilih Perangkat -->
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                1. Kontrol Perangkat
-              </span>
-            </div>
-
-            <button type="button" id="toggle-camera-btn" class="w-full py-3.5 px-5 rounded-2xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2.5 active:scale-[0.99]">
-              <svg id="toggle-camera-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              <span id="toggle-camera-label">Mulai Kamera</span>
-            </button>
-
-            <!-- Dropdown Pilih Kamera (Muncul jika tersedia > 1 kamera) -->
-            <div id="camera-select-wrapper" class="hidden pt-1">
-              <label for="camera-select" class="block text-xs font-medium text-slate-400 mb-1.5">
-                Pilih Sumber Kamera:
-              </label>
-              <select id="camera-select" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs sm:text-sm px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-              </select>
-            </div>
+        <!-- Header Sidebar -->
+        <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-base font-extrabold text-white">
+              Warna &amp; Posisi Tersimpan
+            </h2>
+            <p class="text-xs text-slate-400">
+              Klik titik mana pun pada kanvas untuk menandai
+            </p>
           </div>
-
-          <hr class="border-slate-800" />
-
-          <!-- 2. Sakelar Mode Cermin (Mirror Flip Horizontal di Canvas) -->
-          <div class="space-y-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">
-              2. Orientasi Gambar
-            </span>
-            <div class="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800">
-              <div>
-                <div class="text-sm font-semibold text-white">Mode Cermin (Mirror)</div>
-                <p class="text-xs text-slate-400">Balik gambar secara horizontal di canvas</p>
-              </div>
-              <button type="button" id="mirror-switch" role="switch" aria-checked="true" aria-label="Sakelar Mode Cermin"
-                class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-cyan-500 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-900">
-                <span id="mirror-knob" class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out translate-x-5"></span>
-              </button>
-            </div>
-          </div>
-
-          <hr class="border-slate-800" />
-
-          <!-- 3. Pilihan Filter Canvas -->
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                3. Filter Canvas Real-Time
-              </span>
-              <span id="active-filter-badge" class="text-xs font-semibold text-cyan-400">
-                Normal
-              </span>
-            </div>
-
-            <div id="filter-buttons-grid" class="grid grid-cols-2 gap-2.5">
-              <!-- Tombol Normal -->
-              <button type="button" data-filter="normal" class="filter-btn p-3 rounded-2xl border border-cyan-500 bg-cyan-500/15 text-left transition-all flex items-center gap-2.5">
-                <span class="w-6 h-6 rounded-lg bg-gradient-to-tr from-sky-400 via-emerald-400 to-amber-300 shrink-0 border border-white/20"></span>
-                <div>
-                  <div class="text-xs sm:text-sm font-bold text-white">Normal</div>
-                  <div class="text-[11px] text-slate-400">Warna asli</div>
-                </div>
-              </button>
-
-              <!-- Tombol Hitam Putih (Grayscale) -->
-              <button type="button" data-filter="grayscale" class="filter-btn p-3 rounded-2xl border border-slate-800 bg-slate-950/70 hover:border-slate-700 text-left transition-all flex items-center gap-2.5">
-                <span class="w-6 h-6 rounded-lg bg-gradient-to-tr from-zinc-900 via-zinc-500 to-zinc-100 shrink-0 border border-white/20"></span>
-                <div>
-                  <div class="text-xs sm:text-sm font-bold text-slate-200">Hitam Putih</div>
-                  <div class="text-[11px] text-slate-400">Grayscale</div>
-                </div>
-              </button>
-
-              <!-- Tombol Sepia -->
-              <button type="button" data-filter="sepia" class="filter-btn p-3 rounded-2xl border border-slate-800 bg-slate-950/70 hover:border-slate-700 text-left transition-all flex items-center gap-2.5">
-                <span class="w-6 h-6 rounded-lg bg-gradient-to-tr from-amber-950 via-amber-700 to-amber-300 shrink-0 border border-white/20"></span>
-                <div>
-                  <div class="text-xs sm:text-sm font-bold text-slate-200">Sepia</div>
-                  <div class="text-[11px] text-slate-400">Nuansa klasik</div>
-                </div>
-              </button>
-
-              <!-- Tombol Invert -->
-              <button type="button" data-filter="invert" class="filter-btn p-3 rounded-2xl border border-slate-800 bg-slate-950/70 hover:border-slate-700 text-left transition-all flex items-center gap-2.5">
-                <span class="w-6 h-6 rounded-lg bg-gradient-to-tr from-fuchsia-600 via-cyan-400 to-yellow-300 shrink-0 border border-white/20"></span>
-                <div>
-                  <div class="text-xs sm:text-sm font-bold text-slate-200">Invert</div>
-                  <div class="text-[11px] text-slate-400">Negatif warna</div>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <hr class="border-slate-800" />
-
-          <!-- 4. Tombol Ambil Foto (Unduh PNG) -->
-          <div class="space-y-2.5">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">
-              4. Tangkapan Layar Canvas
-            </span>
-            <button type="button" id="capture-photo-btn" disabled
-              class="w-full py-3.5 px-5 rounded-2xl font-bold text-sm sm:text-base bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-slate-950 shadow-lg shadow-emerald-500/20 disabled:shadow-none transition-all flex items-center justify-center gap-2.5 active:scale-[0.99]">
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              <span>Ambil Foto &amp; Unduh PNG</span>
-            </button>
-          </div>
+          <span id="saved-count-badge" class="px-2.5 py-1 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-mono text-xs font-bold">
+            0 Titik
+          </span>
         </div>
 
-        <!-- Pratinjau Hasil Tangkapan Terakhir (Muncul Setelah Foto Diambil) -->
-        <div id="last-capture-card" class="hidden rounded-3xl bg-slate-900 border border-slate-800 p-5 shadow-xl space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Hasil Tangkapan Terakhir
-            </h3>
-            <span id="capture-count-badge" class="px-2 py-0.5 rounded-md bg-slate-800 text-cyan-400 text-xs font-mono">
-              1 Foto
-            </span>
-          </div>
-          <div class="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 aspect-video">
-            <img id="last-capture-img" alt="Pratinjau foto hasil tangkapan canvas" class="w-full h-full object-contain" />
-          </div>
-          <div class="flex items-center justify-between gap-2 pt-1">
-            <span id="last-capture-meta" class="text-xs text-slate-400 truncate">
-              PNG • Siap disimpan
-            </span>
-            <a id="redownload-link" href="#" download="webcam-foto.png" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-cyan-400 transition-colors shrink-0">
-              Unduh Lagi
-            </a>
+        <!-- Tombol Aksi Global (Unduh PNG & Hapus Semua) -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <button type="button" id="btn-download-png" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]">
+            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Unduh Kanvas (PNG)</span>
+          </button>
+
+          <button type="button" id="btn-clear-all" disabled class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-rose-950/80 hover:text-rose-300 hover:border-rose-500/40 disabled:opacity-40 disabled:pointer-events-none border border-slate-700 text-slate-300 font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>Hapus Semua</span>
+          </button>
+        </div>
+
+        <!-- Daftar Item Penanda & Warna Tersimpan -->
+        <div id="markers-list-container" class="space-y-3 max-h-[540px] overflow-y-auto pr-1 custom-scrollbar">
+          <!-- State Kosong Default -->
+          <div id="empty-markers-state" class="rounded-2xl border border-dashed border-slate-800 bg-slate-950/60 p-8 text-center space-y-2.5">
+            <div class="w-11 h-11 rounded-xl bg-slate-900 border border-slate-800 mx-auto flex items-center justify-center text-slate-500">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5" />
+              </svg>
+            </div>
+            <div class="text-xs font-bold text-slate-300">Belum Ada Penanda Tersimpan</div>
+            <p class="text-[11px] text-slate-500 leading-relaxed">
+              Arahkan kursor ke kanvas di sebelah kiri lalu <strong>klik spesimen virus</strong> (atau objek di webcam) untuk menyimpan warna dan menandai koordinatnya.
+            </p>
           </div>
         </div>
 
@@ -307,535 +322,1526 @@
   </main>
 
   <!-- ===================================================================== -->
-  <!-- LOGIKA JAVASCRIPT WEBCAM & RENDERING CANVAS                           -->
+  <!-- LOGIKA JAVASCRIPT LENGKAP                                             -->
   <!-- ===================================================================== -->
   <script>
     // -------------------------------------------------------------------------
-    // 1. REFERENSI ELEMEN DOM & KONFIGURASI FILTER
+    // 1. INISIALISASI ELEMEN DOM & DUAL CANVAS (BUFFER BERSIH + TAMPILAN)
     // -------------------------------------------------------------------------
+    const canvasWrapper = document.getElementById('canvas-wrapper');
+    const mainCanvas = document.getElementById('main-canvas');
+    const ctx = mainCanvas.getContext('2d', { willReadFrequently: true });
+
+    // Kanvas penyangga (offscreen) berisi frame bersih (tanpa garis bidik/penanda)
+    // agar pembacaan warna getImageData dan pelacakan warna 100% akurat.
+    const bufferCanvas = document.createElement('canvas');
+    bufferCanvas.width = mainCanvas.width;
+    bufferCanvas.height = mainCanvas.height;
+    const bufferCtx = bufferCanvas.getContext('2d', { willReadFrequently: true });
+
     const videoEl = document.getElementById('webcam-video');
-    const canvasEl = document.getElementById('webcam-canvas');
-    const ctx = canvasEl.getContext('2d', { willReadFrequently: true });
 
-    const toggleCameraBtn = document.getElementById('toggle-camera-btn');
-    const toggleCameraLabel = document.getElementById('toggle-camera-label');
-    const toggleCameraIcon = document.getElementById('toggle-camera-icon');
-    const placeholderStartBtn = document.getElementById('placeholder-start-btn');
-    const cameraPlaceholder = document.getElementById('camera-placeholder');
-    const cameraSelectWrapper = document.getElementById('camera-select-wrapper');
-    const cameraSelect = document.getElementById('camera-select');
+    // Elemen UI Navigasi & Kontrol
+    const tabSimulasi = document.getElementById('tab-simulasi');
+    const tabWebcam = document.getElementById('tab-webcam');
+    const simControls = document.getElementById('sim-controls');
+    const webcamControls = document.getElementById('webcam-controls');
+    const specimenLegend = document.getElementById('specimen-legend');
+    const webcamIdleOverlay = document.getElementById('webcam-idle-overlay');
 
-    const mirrorSwitch = document.getElementById('mirror-switch');
-    const mirrorKnob = document.getElementById('mirror-knob');
+    const btnToggleAnim = document.getElementById('btn-toggle-anim');
+    const animIcon = document.getElementById('anim-icon');
+    const animLabel = document.getElementById('anim-label');
+    const btnRandomizePos = document.getElementById('btn-randomize-pos');
 
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    const activeFilterBadge = document.getElementById('active-filter-badge');
+    const btnToggleWebcam = document.getElementById('btn-toggle-webcam');
+    const btnOverlayStartCam = document.getElementById('btn-overlay-start-cam');
+    const chkMirror = document.getElementById('chk-mirror');
+    const selectCameraDevice = document.getElementById('select-camera-device');
 
-    const capturePhotoBtn = document.getElementById('capture-photo-btn');
-    const shutterFlash = document.getElementById('shutter-flash');
+    const webcamErrorBox = document.getElementById('webcam-error-box');
+    const webcamErrorTitle = document.getElementById('webcam-error-title');
+    const webcamErrorDesc = document.getElementById('webcam-error-desc');
+    const webcamErrorTip = document.getElementById('webcam-error-tip');
+    const btnCloseWebcamError = document.getElementById('btn-close-webcam-error');
 
-    const statusBadge = document.getElementById('status-badge');
-    const statusDot = document.getElementById('status-dot');
-    const statusText = document.getElementById('status-text');
-    const resolutionBadge = document.getElementById('resolution-badge');
+    const sourceStatusBadge = document.getElementById('source-status-badge');
+    const sourceStatusDot = document.getElementById('source-status-dot');
+    const sourceStatusText = document.getElementById('source-status-text');
+    const canvasDimBadge = document.getElementById('canvas-dim-badge');
 
-    const canvasHud = document.getElementById('canvas-hud');
-    const hudFilterLabel = document.getElementById('hud-filter-label');
-    const hudMirrorLabel = document.getElementById('hud-mirror-label');
-    const hudFps = document.getElementById('hud-fps');
+    // Elemen Pelacakan Warna Otomatis
+    const btnToggleTracking = document.getElementById('btn-toggle-tracking');
+    const trackingSwitchPill = document.getElementById('tracking-switch-pill');
+    const trackingSwitchKnob = document.getElementById('tracking-switch-knob');
+    const trackingSwitchLabel = document.getElementById('tracking-switch-label');
+    const trackedColorSwatch = document.getElementById('tracked-color-swatch');
+    const trackedColorInfo = document.getElementById('tracked-color-info');
+    const sliderTolerance = document.getElementById('slider-tolerance');
+    const toleranceValueLabel = document.getElementById('tolerance-value-label');
 
-    const errorAlert = document.getElementById('error-alert');
-    const errorTitle = document.getElementById('error-title');
-    const errorMessage = document.getElementById('error-message');
-    const errorHint = document.getElementById('error-hint');
-    const dismissErrorBtn = document.getElementById('dismiss-error-btn');
+    // Elemen Panel Daftar Tersimpan
+    const savedCountBadge = document.getElementById('saved-count-badge');
+    const btnDownloadPng = document.getElementById('btn-download-png');
+    const btnClearAll = document.getElementById('btn-clear-all');
+    const markersListContainer = document.getElementById('markers-list-container');
+    const emptyMarkersState = document.getElementById('empty-markers-state');
 
-    const toastBanner = document.getElementById('toast-banner');
-    const toastMessage = document.getElementById('toast-message');
-    const toastFilename = document.getElementById('toast-filename');
+    // Elemen Toast
+    const toastBox = document.getElementById('toast-box');
+    const toastSwatch = document.getElementById('toast-swatch');
+    const toastText = document.getElementById('toast-text');
 
-    const lastCaptureCard = document.getElementById('last-capture-card');
-    const lastCaptureImg = document.getElementById('last-capture-img');
-    const lastCaptureMeta = document.getElementById('last-capture-meta');
-    const captureCountBadge = document.getElementById('capture-count-badge');
-    const redownloadLink = document.getElementById('redownload-link');
-
-    // Definisi Filter CSS Canvas
-    const FILTERS = {
-      normal: { label: 'Normal', css: 'none' },
-      grayscale: { label: 'Hitam Putih', css: 'grayscale(100%)' },
-      sepia: { label: 'Sepia', css: 'sepia(100%)' },
-      invert: { label: 'Invert', css: 'invert(100%)' },
-    };
-
-    // Deteksi dukungan properti ctx.filter di browser pengguna
-    const supportsNativeCanvasFilter = typeof ctx.filter === 'string';
-
-    // State Aplikasi
+    // -------------------------------------------------------------------------
+    // 2. STATE GLOBAL APLIKASI
+    // -------------------------------------------------------------------------
     const state = {
-      isStreaming: false,
-      stream: null,
-      animationFrameId: null,
+      mode: 'simulasi', // 'simulasi' | 'webcam'
+      isSimAnimating: true,
+      simTime: 0,
+      lastFrameTimestamp: performance.now(),
+
+      // State Webcam
+      isWebcamStreaming: false,
+      webcamStream: null,
       isMirrored: true,
-      activeFilter: 'normal',
       selectedDeviceId: '',
-      captureCount: 0,
-      lastFpsTime: performance.now(),
-      frameCounter: 0,
-      toastTimeoutId: null,
+
+      // State Kursor & Pratinjau Bidik
+      pointer: {
+        active: false,
+        x: 0,
+        y: 0,
+        hex: '#000000',
+        rgb: { r: 0, g: 0, b: 0 },
+        colorName: 'Hitam',
+      },
+
+      // Daftar Penanda & Warna Tersimpan
+      markers: [],
+      nextMarkerNumber: 1,
+
+      // State Pelacakan Warna Otomatis
+      trackingEnabled: false,
+      trackedMarkerId: null,
+      colorTolerance: 42,
+      trackingResult: null, // { minX, minY, maxX, maxY, cx, cy, pixelCount }
+
+      toastTimer: null,
     };
 
     // -------------------------------------------------------------------------
-    // 2. PENANGANAN PESAN ERROR & NOTIFIKASI UI
+    // 3. DATA & GENERATOR 6 SPESIMEN VIRUS UNIK (MODE SIMULASI)
     // -------------------------------------------------------------------------
-    function showError(title, message, hint) {
-      errorTitle.textContent = title;
-      errorMessage.textContent = message;
-      errorHint.textContent = hint || '';
-      errorAlert.classList.remove('hidden');
-    }
+    const VIRUS_SPECIES = [
+      {
+        id: 'coronavirus',
+        name: 'Coronavirus',
+        baseHex: '#EF4444',
+        accentHex: '#FCA5A5',
+        darkHex: '#991B1B',
+        radius: 44,
+      },
+      {
+        id: 'bakteriofag',
+        name: 'Bakteriofag T4',
+        baseHex: '#10B981',
+        accentHex: '#6EE7B7',
+        darkHex: '#065F46',
+        radius: 48,
+      },
+      {
+        id: 'adenovirus',
+        name: 'Adenovirus',
+        baseHex: '#3B82F6',
+        accentHex: '#93C5FD',
+        darkHex: '#1E40AF',
+        radius: 44,
+      },
+      {
+        id: 'influenza',
+        name: 'Influenza',
+        baseHex: '#F59E0B',
+        accentHex: '#FDE68A',
+        darkHex: '#92400E',
+        radius: 42,
+      },
+      {
+        id: 'filovirus',
+        name: 'Filovirus (Ebola)',
+        baseHex: '#8B5CF6',
+        accentHex: '#DDD6FE',
+        darkHex: '#5B21B6',
+        radius: 48,
+      },
+      {
+        id: 'rabies',
+        name: 'Rabies (Lyssavirus)',
+        baseHex: '#06B6D4',
+        accentHex: '#A5F3FC',
+        darkHex: '#155E75',
+        radius: 44,
+      },
+    ];
 
-    function hideError() {
-      errorAlert.classList.add('hidden');
-    }
+    let simViruses = [];
 
-    function showToast(message, filename) {
-      toastMessage.textContent = message;
-      toastFilename.textContent = filename || '';
-      toastBanner.classList.remove('hidden');
+    function initSimViruses(randomize = false) {
+      const w = bufferCanvas.width;
+      const h = bufferCanvas.height;
 
-      if (state.toastTimeoutId) {
-        clearTimeout(state.toastTimeoutId);
+      // Grid 3 kolom x 2 baris agar keenam spesimen tersebar rapi dan mudah diklik
+      const cols = 3;
+      const rows = 2;
+      const cellW = w / cols;
+      const cellH = h / rows;
+
+      const indices = [0, 1, 2, 3, 4, 5];
+      if (randomize) {
+        for (let i = indices.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
       }
-      state.toastTimeoutId = setTimeout(() => {
-        toastBanner.classList.add('hidden');
-      }, 4500);
+
+      simViruses = indices.map((speciesIdx, slotIdx) => {
+        const sp = VIRUS_SPECIES[speciesIdx];
+        const col = slotIdx % cols;
+        const row = Math.floor(slotIdx / cols);
+        const offsetX = randomize ? (Math.random() - 0.5) * 90 : 0;
+        const offsetY = randomize ? (Math.random() - 0.5) * 55 : 0;
+
+        return {
+          ...sp,
+          x: cellW * (col + 0.5) + offsetX,
+          y: cellH * (row + 0.5) + offsetY,
+          vx: (Math.random() > 0.5 ? 1 : -1) * (24 + Math.random() * 20),
+          vy: (Math.random() > 0.5 ? 1 : -1) * (18 + Math.random() * 18),
+          phase: Math.random() * Math.PI * 2,
+          rotation: (Math.random() - 0.5) * 0.4,
+        };
+      });
     }
 
-    function mapMediaErrorToIndonesian(err) {
-      const name = err && err.name ? err.name : 'UnknownError';
+    function updateSimViruses(dt) {
+      if (!state.isSimAnimating) return;
+      state.simTime += dt;
 
-      switch (name) {
-        case 'NotAllowedError':
-        case 'PermissionDeniedError':
-          return {
-            title: 'Izin Akses Kamera Ditolak',
-            message: 'Anda atau pengaturan browser menolak permintaan akses ke webcam.',
-            hint: 'Klik ikon gembok atau kamera di bilah alamat (URL) browser, ubah izin Kamera menjadi "Izinkan" (Allow), lalu klik tombol Mulai Kamera.',
-          };
-        case 'NotFoundError':
-        case 'DevicesNotFoundError':
-          return {
-            title: 'Perangkat Kamera Tidak Ditemukan',
-            message: 'Tidak ada webcam yang terdeteksi pada perangkat Anda.',
-            hint: 'Pastikan kabel webcam terpasang dengan benar atau aktifkan kamera bawaan pada pengaturan sistem operasi.',
-          };
-        case 'NotReadableError':
-        case 'TrackStartError':
-          return {
-            title: 'Kamera Sedang Digunakan Aplikasi Lain',
-            message: 'Perangkat kamera gagal dibuka karena sedang dipakai oleh aplikasi atau tab browser lain.',
-            hint: 'Tutup aplikasi konferensi video (seperti Zoom, Google Meet, Microsoft Teams) atau tab lain yang memakai kamera, lalu coba lagi.',
-          };
-        case 'OverconstrainedError':
-        case 'ConstraintNotSatisfiedError':
-          return {
-            title: 'Konfigurasi Kamera Tidak Didukung',
-            message: 'Resolusi atau perangkat kamera yang dipilih tidak sesuai dengan kemampuan perangkat keras.',
-            hint: 'Silakan pilih perangkat kamera lain atau coba jalankan ulang kamera.',
-          };
-        case 'SecurityError':
-          return {
-            title: 'Akses Diblokir Kebijakan Keamanan',
-            message: 'Browser memblokir akses kamera karena halaman tidak dijalankan melalui protokol aman.',
-            hint: 'Jalankan halaman ini melalui koneksi HTTPS atau server lokal (localhost).',
-          };
-        default:
-          return {
-            title: 'Gagal Mengaktifkan Kamera (' + name + ')',
-            message: err && err.message ? err.message : 'Terjadi kesalahan tak terduga saat mengakses webcam.',
-            hint: 'Periksa kembali izin browser dan koneksi perangkat kamera Anda.',
-          };
+      const w = bufferCanvas.width;
+      const h = bufferCanvas.height;
+      const margin = 85;
+
+      simViruses.forEach((v) => {
+        v.x += v.vx * dt;
+        v.y += v.vy * dt + Math.sin(state.simTime * 2.2 + v.phase) * 0.35;
+        v.rotation += Math.sin(state.simTime * 1.3 + v.phase) * 0.004;
+
+        if (v.x < margin) {
+          v.x = margin;
+          v.vx = Math.abs(v.vx);
+        } else if (v.x > w - margin) {
+          v.x = w - margin;
+          v.vx = -Math.abs(v.vx);
+        }
+
+        if (v.y < margin) {
+          v.y = margin;
+          v.vy = Math.abs(v.vy);
+        } else if (v.y > h - margin) {
+          v.y = h - margin;
+          v.vy = -Math.abs(v.vy);
+        }
+      });
+    }
+
+    // Menggambar latar kisi mikroskop gelap & 6 spesimen virus ke bufferCtx
+    function drawSimulationToBuffer() {
+      const w = bufferCanvas.width;
+      const h = bufferCanvas.height;
+
+      // Latar belakang mikroskop gelap bergradasi radial
+      const bgGrad = bufferCtx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, w * 0.65);
+      bgGrad.addColorStop(0, '#0f172a');
+      bgGrad.addColorStop(1, '#020617');
+      bufferCtx.fillStyle = bgGrad;
+      bufferCtx.fillRect(0, 0, w, h);
+
+      // Kisi (Grid) Mikroskop Halus
+      bufferCtx.strokeStyle = 'rgba(34, 211, 238, 0.07)';
+      bufferCtx.lineWidth = 1;
+      const gridStep = 40;
+      for (let gx = 0; gx <= w; gx += gridStep) {
+        bufferCtx.beginPath();
+        bufferCtx.moveTo(gx, 0);
+        bufferCtx.lineTo(gx, h);
+        bufferCtx.stroke();
+      }
+      for (let gy = 0; gy <= h; gy += gridStep) {
+        bufferCtx.beginPath();
+        bufferCtx.moveTo(0, gy);
+        bufferCtx.lineTo(w, gy);
+        bufferCtx.stroke();
+      }
+
+      // Garis sumbu tengah optik mikroskop
+      bufferCtx.strokeStyle = 'rgba(34, 211, 238, 0.14)';
+      bufferCtx.setLineDash([6, 6]);
+      bufferCtx.beginPath();
+      bufferCtx.moveTo(w / 2, 0);
+      bufferCtx.lineTo(w / 2, h);
+      bufferCtx.moveTo(0, h / 2);
+      bufferCtx.lineTo(w, h / 2);
+      bufferCtx.stroke();
+      bufferCtx.setLineDash([]);
+
+      // Gambar setiap spesimen virus
+      simViruses.forEach((v) => {
+        bufferCtx.save();
+        bufferCtx.translate(v.x, v.y);
+
+        // Gambar bentuk morfologi khas tiap virus
+        bufferCtx.save();
+        bufferCtx.rotate(v.rotation);
+
+        if (v.id === 'coronavirus') {
+          drawCoronavirus(bufferCtx, v);
+        } else if (v.id === 'bakteriofag') {
+          drawBakteriofag(bufferCtx, v);
+        } else if (v.id === 'adenovirus') {
+          drawAdenovirus(bufferCtx, v);
+        } else if (v.id === 'influenza') {
+          drawInfluenza(bufferCtx, v);
+        } else if (v.id === 'filovirus') {
+          drawFilovirus(bufferCtx, v);
+        } else if (v.id === 'rabies') {
+          drawRabies(bufferCtx, v);
+        }
+        bufferCtx.restore();
+
+        // Label nama spesimen halus di bawah virus
+        bufferCtx.font = '600 12px Inter, sans-serif';
+        bufferCtx.textAlign = 'center';
+        bufferCtx.fillStyle = 'rgba(226, 232, 240, 0.85)';
+        bufferCtx.fillText(v.name, 0, v.radius + 26);
+
+        bufferCtx.restore();
+      });
+    }
+
+    function drawCoronavirus(c, v) {
+      const spikes = 16;
+      for (let i = 0; i < spikes; i++) {
+        const angle = (i / spikes) * Math.PI * 2;
+        const x1 = Math.cos(angle) * 32;
+        const y1 = Math.sin(angle) * 32;
+        const x2 = Math.cos(angle) * 48;
+        const y2 = Math.sin(angle) * 48;
+
+        c.strokeStyle = v.baseHex;
+        c.lineWidth = 4;
+        c.beginPath();
+        c.moveTo(x1, y1);
+        c.lineTo(x2, y2);
+        c.stroke();
+
+        c.fillStyle = v.accentHex;
+        c.beginPath();
+        c.arc(x2, y2, 4.5, 0, Math.PI * 2);
+        c.fill();
+      }
+
+      // Kapsid bulat utama
+      c.fillStyle = v.baseHex;
+      c.beginPath();
+      c.arc(0, 0, 34, 0, Math.PI * 2);
+      c.fill();
+
+      // Cincin dalam & inti RNA
+      c.strokeStyle = v.darkHex;
+      c.lineWidth = 3;
+      c.beginPath();
+      c.arc(0, 0, 22, 0, Math.PI * 2);
+      c.stroke();
+
+      c.strokeStyle = v.accentHex;
+      c.lineWidth = 2.5;
+      c.beginPath();
+      for (let t = 0; t < Math.PI * 4; t += 0.25) {
+        const r = t * 1.3;
+        const px = Math.cos(t) * r;
+        const py = Math.sin(t) * r;
+        if (t === 0) c.moveTo(px, py);
+        else c.lineTo(px, py);
+      }
+      c.stroke();
+    }
+
+    function drawBakteriofag(c, v) {
+      // Kepala ikosahedral
+      c.fillStyle = v.baseHex;
+      c.strokeStyle = v.darkHex;
+      c.lineWidth = 2.5;
+      c.beginPath();
+      c.moveTo(0, -52);
+      c.lineTo(24, -36);
+      c.lineTo(24, -12);
+      c.lineTo(0, 4);
+      c.lineTo(-24, -12);
+      c.lineTo(-24, -36);
+      c.closePath();
+      c.fill();
+      c.stroke();
+
+      // Untai DNA di dalam kepala
+      c.strokeStyle = v.accentHex;
+      c.lineWidth = 2.5;
+      c.beginPath();
+      c.moveTo(-8, -34);
+      c.bezierCurveTo(10, -28, -10, -20, 8, -14);
+      c.stroke();
+
+      // Leher & Selubung ekor
+      c.fillStyle = v.baseHex;
+      c.fillRect(-7, 4, 14, 30);
+      c.strokeRect(-7, 4, 14, 30);
+
+      // Lempeng dasar
+      c.fillStyle = v.accentHex;
+      c.fillRect(-14, 34, 28, 5);
+
+      // 6 Serabut ekor
+      c.strokeStyle = v.baseHex;
+      c.lineWidth = 3;
+      const legs = [
+        [[-12, 37], [-32, 24], [-44, 52]],
+        [[-10, 38], [-28, 36], [-36, 58]],
+        [[-6, 39], [-18, 46], [-22, 62]],
+        [[12, 37], [32, 24], [44, 52]],
+        [[10, 38], [28, 36], [36, 58]],
+        [[6, 39], [18, 46], [22, 62]],
+      ];
+      legs.forEach((pts) => {
+        c.beginPath();
+        c.moveTo(pts[0][0], pts[0][1]);
+        c.lineTo(pts[1][0], pts[1][1]);
+        c.lineTo(pts[2][0], pts[2][1]);
+        c.stroke();
+      });
+    }
+
+    function drawAdenovirus(c, v) {
+      const sides = 6;
+      const outerR = 38;
+      const fiberR = 52;
+
+      // Antena penton pada setiap sudut
+      for (let i = 0; i < sides; i++) {
+        const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
+        const vx = Math.cos(angle) * outerR;
+        const vy = Math.sin(angle) * outerR;
+        const fx = Math.cos(angle) * fiberR;
+        const fy = Math.sin(angle) * fiberR;
+
+        c.strokeStyle = v.accentHex;
+        c.lineWidth = 3;
+        c.beginPath();
+        c.moveTo(vx, vy);
+        c.lineTo(fx, fy);
+        c.stroke();
+
+        c.fillStyle = v.baseHex;
+        c.beginPath();
+        c.arc(fx, fy, 4.5, 0, Math.PI * 2);
+        c.fill();
+      }
+
+      // Badan polihedral utama
+      c.fillStyle = v.baseHex;
+      c.strokeStyle = v.darkHex;
+      c.lineWidth = 2.5;
+      c.beginPath();
+      for (let i = 0; i < sides; i++) {
+        const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
+        const px = Math.cos(angle) * outerR;
+        const py = Math.sin(angle) * outerR;
+        if (i === 0) c.moveTo(px, py);
+        else c.lineTo(px, py);
+      }
+      c.closePath();
+      c.fill();
+      c.stroke();
+
+      // Faset segitiga ikosahedral di tengah
+      c.strokeStyle = v.accentHex;
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(0, -22);
+      c.lineTo(20, 12);
+      c.lineTo(-20, 12);
+      c.closePath();
+      c.stroke();
+    }
+
+    function drawInfluenza(c, v) {
+      // Tonjolan permukaan rapat
+      const spikes = 20;
+      for (let i = 0; i < spikes; i++) {
+        const angle = (i / spikes) * Math.PI * 2;
+        const x1 = Math.cos(angle) * 32;
+        const y1 = Math.sin(angle) * 32;
+        const x2 = Math.cos(angle) * 44;
+        const y2 = Math.sin(angle) * 44;
+
+        c.strokeStyle = i % 2 === 0 ? v.baseHex : v.accentHex;
+        c.lineWidth = 3.5;
+        c.beginPath();
+        c.moveTo(x1, y1);
+        c.lineTo(x2, y2);
+        c.stroke();
+      }
+
+      // Selubung sferis
+      c.fillStyle = v.baseHex;
+      c.strokeStyle = v.darkHex;
+      c.lineWidth = 3;
+      c.beginPath();
+      c.arc(0, 0, 33, 0, Math.PI * 2);
+      c.fill();
+      c.stroke();
+
+      // Segmen-segmen RNA
+      c.strokeStyle = v.darkHex;
+      c.lineWidth = 3.5;
+      c.lineCap = 'round';
+      for (let s = -2; s <= 2; s++) {
+        c.beginPath();
+        c.moveTo(s * 6, -14 + Math.abs(s) * 2);
+        c.lineTo(s * 6, 14 - Math.abs(s) * 2);
+        c.stroke();
+      }
+    }
+
+    function drawFilovirus(c, v) {
+      // Bentuk filamen panjang melengkung khas Ebola/Marburg
+      c.lineCap = 'round';
+      c.lineJoin = 'round';
+
+      c.strokeStyle = v.baseHex;
+      c.lineWidth = 22;
+      c.beginPath();
+      c.moveTo(-42, 24);
+      c.bezierCurveTo(-48, -32, 8, -42, 12, 0);
+      c.bezierCurveTo(16, 36, 48, 22, 42, -22);
+      c.stroke();
+
+      // Inti heliks di dalam filamen
+      c.strokeStyle = v.accentHex;
+      c.lineWidth = 5;
+      c.setLineDash([6, 6]);
+      c.beginPath();
+      c.moveTo(-42, 24);
+      c.bezierCurveTo(-48, -32, 8, -42, 12, 0);
+      c.bezierCurveTo(16, 36, 48, 22, 42, -22);
+      c.stroke();
+      c.setLineDash([]);
+    }
+
+    function drawRabies(c, v) {
+      // Bentuk peluru (bullet-shaped) khas Rhabdovirus
+      c.fillStyle = v.baseHex;
+      c.strokeStyle = v.darkHex;
+      c.lineWidth = 3;
+
+      c.beginPath();
+      c.moveTo(-24, 34);
+      c.lineTo(-24, -8);
+      c.arc(0, -8, 24, Math.PI, 0, false);
+      c.lineTo(24, 34);
+      c.closePath();
+      c.fill();
+      c.stroke();
+
+      // Garis heliks ribonukleoprotein di dalam peluru
+      c.strokeStyle = v.accentHex;
+      c.lineWidth = 3;
+      for (let y = -10; y <= 24; y += 8) {
+        c.beginPath();
+        c.moveTo(-14, y);
+        c.lineTo(14, y + 3);
+        c.stroke();
       }
     }
 
     // -------------------------------------------------------------------------
-    // 3. DAFTAR PERANGKAT KAMERA (MULTI-KAMERA DEPAN/BELAKANG)
+    // 4. KONVERSI WARNA (RGB -> HEX & NAMA WARNA BAHASA INDONESIA)
     // -------------------------------------------------------------------------
-    async function populateCameraDevices() {
+    function rgbToHex(r, g, b) {
+      const toHex = (val) => Math.max(0, Math.min(255, Math.round(val))).toString(16).padStart(2, '0').toUpperCase();
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    function getIndonesianColorName(r, g, b) {
+      // Konversi RGB ke HSL untuk klasifikasi warna natural dalam Bahasa Indonesia
+      const rn = r / 255;
+      const gn = g / 255;
+      const bn = b / 255;
+      const max = Math.max(rn, gn, bn);
+      const min = Math.min(rn, gn, bn);
+      const l = (max + min) / 2;
+      const d = max - min;
+
+      if (d === 0 || (max - min) < 0.08) {
+        if (l < 0.14) return 'Hitam Pekat';
+        if (l < 0.35) return 'Abu-abu Gelap';
+        if (l < 0.72) return 'Abu-abu';
+        if (l < 0.92) return 'Abu-abu Terang';
+        return 'Putih';
+      }
+
+      const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      let h = 0;
+      if (max === rn) h = ((gn - bn) / d + (gn < bn ? 6 : 0)) * 60;
+      else if (max === gn) h = ((bn - rn) / d + 2) * 60;
+      else h = ((rn - gn) / d + 4) * 60;
+
+      if (l < 0.14) return 'Hitam Kebiruan / Gelap';
+      if (l > 0.92 && s < 0.3) return 'Putih Gading';
+
+      let baseName = 'Warna Campuran';
+      if (h >= 345 || h < 12) baseName = 'Merah Koral';
+      else if (h >= 12 && h < 34) baseName = 'Oranye';
+      else if (h >= 34 && h < 56) baseName = 'Kuning Amber';
+      else if (h >= 56 && h < 80) baseName = 'Hijau Limau';
+      else if (h >= 80 && h < 155) baseName = 'Hijau Zamrud';
+      else if (h >= 155 && h < 178) baseName = 'Hijau Toska';
+      else if (h >= 178 && h < 205) baseName = 'Biru Cyan';
+      else if (h >= 205 && h < 245) baseName = 'Biru Elektrik';
+      else if (h >= 245 && h < 285) baseName = 'Ungu Violet';
+      else if (h >= 285 && h < 325) baseName = 'Magenta';
+      else if (h >= 325 && h < 345) baseName = 'Merah Muda';
+
+      if (l < 0.32) return `${baseName} Tua`;
+      if (l > 0.76) return `${baseName} Muda`;
+      return baseName;
+    }
+
+    // Identifikasi spesimen virus terdekat jika klik terjadi pada mode simulasi
+    function identifySubjectAt(x, y) {
+      if (state.mode === 'webcam') {
+        return 'Objek Webcam';
+      }
+      for (let i = simViruses.length - 1; i >= 0; i--) {
+        const v = simViruses[i];
+        const dist = Math.hypot(x - v.x, y - v.y);
+        if (dist <= v.radius + 16) {
+          return v.name;
+        }
+      }
+      return 'Latar Mikroskop';
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. PERHITUNGAN KOORDINAT PRESISI (CLIENT -> INTERNAL CANVAS)
+    // -------------------------------------------------------------------------
+    function getExactCanvasCoords(clientX, clientY) {
+      const rect = mainCanvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return { x: 0, y: 0 };
+
+      const scaleX = mainCanvas.width / rect.width;
+      const scaleY = mainCanvas.height / rect.height;
+
+      const x = Math.max(0, Math.min(mainCanvas.width - 1, Math.round((clientX - rect.left) * scaleX)));
+      const y = Math.max(0, Math.min(mainCanvas.height - 1, Math.round((clientY - rect.top) * scaleY)));
+      return { x, y };
+    }
+
+    function samplePixelAt(x, y) {
+      const pixel = bufferCtx.getImageData(x, y, 1, 1).data;
+      const r = pixel[0];
+      const g = pixel[1];
+      const b = pixel[2];
+      const hex = rgbToHex(r, g, b);
+      const colorName = getIndonesianColorName(r, g, b);
+      return { r, g, b, hex, colorName };
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. PELACAKAN WARNA OTOMATIS REAL-TIME (BOUNDING BOX & CENTROID)
+    // -------------------------------------------------------------------------
+    function computeRealTimeColorTracking() {
+      if (!state.trackingEnabled || state.trackedMarkerId === null) {
+        state.trackingResult = null;
+        return;
+      }
+
+      const targetMarker = state.markers.find((m) => m.id === state.trackedMarkerId);
+      if (!targetMarker) {
+        state.trackingResult = null;
+        return;
+      }
+
+      const w = bufferCanvas.width;
+      const h = bufferCanvas.height;
+      const imgData = bufferCtx.getImageData(0, 0, w, h).data;
+
+      const tr = targetMarker.rgb.r;
+      const tg = targetMarker.rgb.g;
+      const tb = targetMarker.rgb.b;
+      const tolSq = state.colorTolerance * state.colorTolerance;
+
+      let minX = w;
+      let minY = h;
+      let maxX = 0;
+      let maxY = 0;
+      let sumX = 0;
+      let sumY = 0;
+      let matchCount = 0;
+
+      // Sampling setiap 3 piksel agar berjalan mulus 60 FPS di semua perangkat
+      const step = 3;
+      for (let y = 0; y < h; y += step) {
+        const rowOffset = y * w * 4;
+        for (let x = 0; x < w; x += step) {
+          const idx = rowOffset + x * 4;
+          const dr = imgData[idx] - tr;
+          const dg = imgData[idx + 1] - tg;
+          const db = imgData[idx + 2] - tb;
+
+          if (dr * dr + dg * dg + db * db <= tolSq) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+            sumX += x;
+            sumY += y;
+            matchCount++;
+          }
+        }
+      }
+
+      // Ambang minimum piksel agar tidak terganggu derau 1 titik
+      if (matchCount >= 10) {
+        state.trackingResult = {
+          minX: Math.max(0, minX - 4),
+          minY: Math.max(0, minY - 4),
+          maxX: Math.min(w - 1, maxX + 4),
+          maxY: Math.min(h - 1, maxY + 4),
+          cx: Math.round(sumX / matchCount),
+          cy: Math.round(sumY / matchCount),
+          pixelCount: matchCount,
+          target: targetMarker,
+        };
+      } else {
+        state.trackingResult = null;
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. RENDERING OVERLAY PADA KANVAS UTAMA (PENANDA, PELACAKAN, LOUPE)
+    // -------------------------------------------------------------------------
+    function drawOverlaysOnMainCanvas() {
+      const w = mainCanvas.width;
+      const h = mainCanvas.height;
+
+      // 1. Gambar Kotak Pelacak Otomatis (Bounding Box & Centroid) jika aktif
+      if (state.trackingEnabled && state.trackingResult) {
+        const tr = state.trackingResult;
+        const boxW = tr.maxX - tr.minX;
+        const boxH = tr.maxY - tr.minY;
+
+        ctx.save();
+        // Lapisan kotak pelacak transparan
+        ctx.fillStyle = `${tr.target.hex}22`;
+        ctx.fillRect(tr.minX, tr.minY, boxW, boxH);
+
+        // Garis tepi kotak pelacak putus-putus
+        ctx.strokeStyle = tr.target.hex;
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([8, 4]);
+        ctx.strokeRect(tr.minX, tr.minY, boxW, boxH);
+        ctx.setLineDash([]);
+
+        // Siku penegas di 4 sudut kotak
+        const corner = Math.min(16, Math.floor(Math.min(boxW, boxH) / 3));
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 3;
+        // Kiri atas
+        ctx.beginPath();
+        ctx.moveTo(tr.minX, tr.minY + corner);
+        ctx.lineTo(tr.minX, tr.minY);
+        ctx.lineTo(tr.minX + corner, tr.minY);
+        // Kanan atas
+        ctx.moveTo(tr.maxX - corner, tr.minY);
+        ctx.lineTo(tr.maxX, tr.minY);
+        ctx.lineTo(tr.maxX, tr.minY + corner);
+        // Kiri bawah
+        ctx.moveTo(tr.minX, tr.maxY - corner);
+        ctx.lineTo(tr.minX, tr.maxY);
+        ctx.lineTo(tr.minX + corner, tr.maxY);
+        // Kanan bawah
+        ctx.moveTo(tr.maxX - corner, tr.maxY);
+        ctx.lineTo(tr.maxX, tr.maxY);
+        ctx.lineTo(tr.maxX, tr.maxY - corner);
+        ctx.stroke();
+
+        // Titik Pusat (Centroid)
+        ctx.fillStyle = tr.target.hex;
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(tr.cx, tr.cy, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Label Pelacakan di atas bounding box
+        const trackLabel = `LACAK #${tr.target.number} • Pusat (${tr.cx}, ${tr.cy})`;
+        ctx.font = '700 11px "JetBrains Mono", monospace';
+        const labelW = ctx.measureText(trackLabel).width + 14;
+        const labelX = Math.max(4, Math.min(w - labelW - 4, tr.minX));
+        const labelY = tr.minY > 26 ? tr.minY - 22 : tr.maxY + 6;
+
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.88)';
+        ctx.beginPath();
+        ctx.roundRect(labelX, labelY, labelW, 18, 5);
+        ctx.fill();
+        ctx.strokeStyle = tr.target.hex;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'left';
+        ctx.fillText(trackLabel, labelX + 7, labelY + 13);
+        ctx.restore();
+      }
+
+      // 2. Gambar Semua Penanda Posisi yang Telah Diklik (#1, #2, #3, ...)
+      state.markers.forEach((m) => {
+        ctx.save();
+
+        // Cincin luar gelap untuk kontras maksimal di latar terang
+        ctx.strokeStyle = 'rgba(2, 6, 23, 0.9)';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, 16, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Cincin target berwarna sesuai warna yang diambil
+        ctx.strokeStyle = m.hex;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, 16, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Cincin tipis putih di dalam
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, 12, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Garis silang (crosshair) presisi
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(m.x - 22, m.y);
+        ctx.lineTo(m.x - 8, m.y);
+        ctx.moveTo(m.x + 8, m.y);
+        ctx.lineTo(m.x + 22, m.y);
+        ctx.moveTo(m.x, m.y - 22);
+        ctx.lineTo(m.x, m.y - 8);
+        ctx.moveTo(m.x, m.y + 8);
+        ctx.lineTo(m.x, m.y + 22);
+        ctx.stroke();
+
+        // Titik pusat warna
+        ctx.fillStyle = m.hex;
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Lencana Nomor Penanda (#1, #2...) + Label Koordinat (X, Y)
+        const badgeText = `#${m.number} (${m.x}, ${m.y})`;
+        ctx.font = '700 11px "JetBrains Mono", monospace';
+        const textWidth = ctx.measureText(badgeText).width;
+        const pillW = textWidth + 24;
+        const pillH = 22;
+
+        // Penyesuaian posisi label otomatis agar tidak keluar tepi kanvas
+        let pillX = m.x + 18;
+        let pillY = m.y - 26;
+        if (pillX + pillW > w - 6) pillX = m.x - pillW - 18;
+        if (pillY < 6) pillY = m.y + 12;
+        if (pillY + pillH > h - 6) pillY = h - pillH - 6;
+
+        // Latar pil gelap kontras
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.9)';
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, 6);
+        ctx.fill();
+
+        ctx.strokeStyle = m.hex;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        // Kotak kecil warna di dalam label
+        ctx.fillStyle = m.hex;
+        ctx.beginPath();
+        ctx.roundRect(pillX + 5, pillY + 5, 12, 12, 3);
+        ctx.fill();
+
+        // Teks nomor & koordinat
+        ctx.fillStyle = '#F8FAFC';
+        ctx.textAlign = 'left';
+        ctx.fillText(badgeText, pillX + 21, pillY + 15);
+
+        ctx.restore();
+      });
+
+      // 3. Gambar Garis Bidik (Crosshair) & Kotak Pratinjau Real-Time saat Hover
+      if (state.pointer.active) {
+        const px = state.pointer.x;
+        const py = state.pointer.y;
+        const pHex = state.pointer.hex;
+
+        ctx.save();
+
+        // Garis bidik vertikal & horizontal halus melintasi titik kursor
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, h);
+        ctx.moveTo(0, py);
+        ctx.lineTo(w, py);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Lingkaran bidik kecil di ujung kursor
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(px, py, 9, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Kotak pratinjau warna & koordinat (Loupe HUD) mengikuti kursor
+        const hudW = 166;
+        const hudH = 48;
+        let hudX = px + 16;
+        let hudY = py + 16;
+        if (hudX + hudW > w - 8) hudX = px - hudW - 16;
+        if (hudY + hudH > h - 8) hudY = py - hudH - 16;
+
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.92)';
+        ctx.beginPath();
+        ctx.roundRect(hudX, hudY, hudW, hudH, 10);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Kotak pratinjau warna piksel
+        ctx.fillStyle = pHex;
+        ctx.beginPath();
+        ctx.roundRect(hudX + 8, hudY + 8, 32, 32, 6);
+        ctx.fill();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Kode HEX & Koordinat (X, Y)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '700 12px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(pHex, hudX + 48, hudY + 21);
+
+        ctx.fillStyle = '#38BDF8';
+        ctx.font = '600 11px "JetBrains Mono", monospace';
+        ctx.fillText(`X:${px}  Y:${py}`, hudX + 48, hudY + 37);
+
+        ctx.restore();
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. LOOP UTAMA RENDERING KANVAS (60 FPS)
+    // -------------------------------------------------------------------------
+    function mainRenderLoop(now) {
+      const dt = Math.min(0.05, (now - state.lastFrameTimestamp) / 1000);
+      state.lastFrameTimestamp = now;
+
+      if (state.mode === 'simulasi') {
+        updateSimViruses(dt);
+        drawSimulationToBuffer();
+      } else if (state.mode === 'webcam') {
+        if (state.isWebcamStreaming && videoEl.readyState >= 2) {
+          // Sesuaikan dimensi kanvas dengan resolusi asli webcam jika berubah
+          if (
+            videoEl.videoWidth &&
+            videoEl.videoHeight &&
+            (bufferCanvas.width !== videoEl.videoWidth || bufferCanvas.height !== videoEl.videoHeight)
+          ) {
+            setCanvasDimensions(videoEl.videoWidth, videoEl.videoHeight);
+          }
+
+          bufferCtx.save();
+          if (state.isMirrored) {
+            bufferCtx.translate(bufferCanvas.width, 0);
+            bufferCtx.scale(-1, 1);
+          }
+          bufferCtx.drawImage(videoEl, 0, 0, bufferCanvas.width, bufferCanvas.height);
+          bufferCtx.restore();
+        } else {
+          bufferCtx.fillStyle = '#020617';
+          bufferCtx.fillRect(0, 0, bufferCanvas.width, bufferCanvas.height);
+        }
+      }
+
+      // Perbarui pratinjau warna kursor secara real-time saat objek bergerak di bawah kursor
+      if (state.pointer.active) {
+        const sampled = samplePixelAt(state.pointer.x, state.pointer.y);
+        state.pointer.hex = sampled.hex;
+        state.pointer.rgb = { r: sampled.r, g: sampled.g, b: sampled.b };
+        state.pointer.colorName = sampled.colorName;
+      }
+
+      // Jalankan pelacakan warna otomatis jika diaktifkan
+      computeRealTimeColorTracking();
+
+      // Salin frame bersih dari bufferCanvas ke mainCanvas
+      ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+      ctx.drawImage(bufferCanvas, 0, 0);
+
+      // Gambar seluruh penanda, bounding box pelacak, dan kursor bidik di atas mainCanvas
+      drawOverlaysOnMainCanvas();
+
+      requestAnimationFrame(mainRenderLoop);
+    }
+
+    function setCanvasDimensions(w, h) {
+      mainCanvas.width = w;
+      mainCanvas.height = h;
+      bufferCanvas.width = w;
+      bufferCanvas.height = h;
+      canvasWrapper.style.aspectRatio = `${w} / ${h}`;
+      canvasDimBadge.textContent = `${w} \u00D7 ${h} px`;
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. INTERAKSI KLIK & GERAK KURSOR DI ATAS KANVAS
+    // -------------------------------------------------------------------------
+    mainCanvas.addEventListener('pointermove', (e) => {
+      const coords = getExactCanvasCoords(e.clientX, e.clientY);
+      const sampled = samplePixelAt(coords.x, coords.y);
+
+      state.pointer.active = true;
+      state.pointer.x = coords.x;
+      state.pointer.y = coords.y;
+      state.pointer.hex = sampled.hex;
+      state.pointer.rgb = { r: sampled.r, g: sampled.g, b: sampled.b };
+      state.pointer.colorName = sampled.colorName;
+    });
+
+    mainCanvas.addEventListener('pointerleave', () => {
+      state.pointer.active = false;
+    });
+
+    mainCanvas.addEventListener('click', (e) => {
+      // Cegah klik jika mode webcam sedang belum aktif
+      if (state.mode === 'webcam' && !state.isWebcamStreaming) {
+        showToast('Aktifkan kamera webcam terlebih dahulu untuk menangkap warna.', '#F59E0B');
+        return;
+      }
+
+      const coords = getExactCanvasCoords(e.clientX, e.clientY);
+      const sampled = samplePixelAt(coords.x, coords.y);
+      const subjectLabel = identifySubjectAt(coords.x, coords.y);
+
+      const newMarker = {
+        id: Date.now() + Math.random(),
+        number: state.nextMarkerNumber++,
+        x: coords.x,
+        y: coords.y,
+        hex: sampled.hex,
+        rgb: { r: sampled.r, g: sampled.g, b: sampled.b },
+        rgbString: `rgb(${sampled.r}, ${sampled.g}, ${sampled.b})`,
+        colorName: sampled.colorName,
+        subject: subjectLabel,
+      };
+
+      state.markers.unshift(newMarker);
+
+      // Jadikan warna terbaru sebagai target pelacakan otomatis
+      state.trackedMarkerId = newMarker.id;
+      updateTrackedColorUI();
+      renderMarkersSidebar();
+
+      showToast(
+        `Penanda #${newMarker.number} (${newMarker.hex} • ${newMarker.colorName}) disimpan di (${newMarker.x}, ${newMarker.y})`,
+        newMarker.hex
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // 10. MANAJEMEN SIDEBAR WARNA & POSISI TERSIMPAN + SALIN KLIPBOARD
+    // -------------------------------------------------------------------------
+    function copyTextToClipboard(text, hexColor) {
+      const tempTextarea = document.createElement('textarea');
+      tempTextarea.value = text;
+      tempTextarea.style.position = 'fixed';
+      tempTextarea.style.opacity = '0';
+      document.body.appendChild(tempTextarea);
+      tempTextarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(`Kode warna ${text} berhasil disalin ke papan klip!`, hexColor);
+      } catch (err) {
+        showToast(`Kode warna: ${text}`, hexColor);
+      }
+      document.body.removeChild(tempTextarea);
+    }
+
+    function deleteMarker(id) {
+      state.markers = state.markers.filter((m) => m.id !== id);
+      if (state.trackedMarkerId === id) {
+        state.trackedMarkerId = state.markers.length > 0 ? state.markers[0].id : null;
+        updateTrackedColorUI();
+      }
+      renderMarkersSidebar();
+    }
+
+    function clearAllMarkers() {
+      state.markers = [];
+      state.nextMarkerNumber = 1;
+      state.trackedMarkerId = null;
+      state.trackingResult = null;
+      updateTrackedColorUI();
+      renderMarkersSidebar();
+      showToast('Semua penanda posisi dan riwayat warna telah dihapus.', '#06B6D4');
+    }
+
+    function selectMarkerForTracking(id) {
+      state.trackedMarkerId = id;
+      if (!state.trackingEnabled) {
+        setTrackingEnabled(true);
+      }
+      updateTrackedColorUI();
+      renderMarkersSidebar();
+    }
+
+    function updateTrackedColorUI() {
+      const target = state.markers.find((m) => m.id === state.trackedMarkerId);
+      if (target) {
+        trackedColorSwatch.style.backgroundColor = target.hex;
+        trackedColorInfo.textContent = `#${target.number} • ${target.hex} (${target.colorName})`;
+      } else {
+        trackedColorSwatch.style.backgroundColor = '#1e293b';
+        trackedColorInfo.textContent = 'Belum ada (klik virus di kanvas)';
+      }
+    }
+
+    function renderMarkersSidebar() {
+      const count = state.markers.length;
+      savedCountBadge.textContent = `${count} Titik`;
+      btnClearAll.disabled = count === 0;
+
+      if (count === 0) {
+        markersListContainer.innerHTML = '';
+        markersListContainer.appendChild(emptyMarkersState);
+        emptyMarkersState.classList.remove('hidden');
+        return;
+      }
+
+      emptyMarkersState.classList.add('hidden');
+      markersListContainer.innerHTML = state.markers
+        .map((m) => {
+          const isBeingTracked = state.trackingEnabled && state.trackedMarkerId === m.id;
+          return `
+            <div class="rounded-2xl border ${
+              isBeingTracked
+                ? 'border-cyan-500 bg-cyan-950/25'
+                : 'border-slate-800 bg-slate-950/80 hover:border-slate-700'
+            } p-3.5 transition-all space-y-2.5">
+              
+              <!-- Baris Atas: Nomor Penanda, Kotak Warna, Nama Warna & Hapus -->
+              <div class="flex items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span class="px-2 py-1 rounded-lg bg-slate-800 text-cyan-400 font-mono text-xs font-extrabold shrink-0">
+                    #${m.number}
+                  </span>
+                  <div style="background-color: ${m.hex};" class="w-8 h-8 rounded-xl border border-white/25 shadow shrink-0"></div>
+                  <div class="min-w-0">
+                    <div class="text-xs sm:text-sm font-bold text-white truncate">${m.colorName}</div>
+                    <div class="text-[11px] text-slate-400 truncate">${m.subject}</div>
+                  </div>
+                </div>
+
+                <button type="button" onclick="deleteMarker(${m.id})" aria-label="Hapus penanda #${m.number}"
+                  class="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/60 transition-colors shrink-0">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Baris Detail: Kode HEX (Salin), RGB & Koordinat (X, Y) -->
+              <div class="grid grid-cols-2 gap-2 text-[11px] font-mono">
+                <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
+                  <span class="text-slate-200 font-bold">${m.hex}</span>
+                  <button type="button" onclick="copyTextToClipboard('${m.hex}', '${m.hex}')"
+                    class="text-cyan-400 hover:text-cyan-300 font-sans font-semibold text-[11px] underline underline-offset-2">
+                    Salin
+                  </button>
+                </div>
+
+                <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                  <span class="text-slate-500">Pos:</span>
+                  <span class="text-emerald-400 font-bold">(${m.x}, ${m.y})</span>
+                </div>
+              </div>
+
+              <!-- Baris Bawah: Nilai RGB & Tombol Lacak Warna -->
+              <div class="flex items-center justify-between gap-2 pt-0.5">
+                <span class="text-[11px] font-mono text-slate-400">${m.rgbString}</span>
+                <button type="button" onclick="selectMarkerForTracking(${m.id})"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors ${
+                    isBeingTracked
+                      ? 'bg-cyan-500 text-slate-950 font-bold'
+                      : 'bg-slate-800 hover:bg-slate-700 text-cyan-300'
+                  }">
+                  ${isBeingTracked ? 'Sedang Dilacak' : 'Lacak Warna Ini'}
+                </button>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    // -------------------------------------------------------------------------
+    // 11. EKSPOR HASIL KANVAS (BESERTA SEMUA PENANDA) KE PNG
+    // -------------------------------------------------------------------------
+    function downloadCanvasAsPNG() {
+      // Pastikan frame tergambar bersih tanpa kursor bidik melayang saat diekspor
+      const prevPointerActive = state.pointer.active;
+      state.pointer.active = false;
+
+      ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+      ctx.drawImage(bufferCanvas, 0, 0);
+      drawOverlaysOnMainCanvas();
+
+      const dataUrl = mainCanvas.toDataURL('image/png');
+      state.pointer.active = prevPointerActive;
+
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+      const filename = `detektor-virus-${stamp}.png`;
+
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast(`Gambar kanvas berhasil diunduh (${filename})`, '#10B981');
+    }
+
+    // -------------------------------------------------------------------------
+    // 12. KONTROL DUAL MODE (SIMULASI VIRUS VS KAMERA WEBCAM)
+    // -------------------------------------------------------------------------
+    function switchMode(newMode) {
+      if (state.mode === newMode) return;
+      state.mode = newMode;
+      hideWebcamError();
+
+      if (newMode === 'simulasi') {
+        stopWebcamStream();
+        setCanvasDimensions(960, 540);
+
+        tabSimulasi.className =
+          'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow';
+        tabWebcam.className =
+          'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-400 hover:text-white';
+
+        simControls.classList.remove('hidden');
+        simControls.classList.add('flex');
+        webcamControls.classList.add('hidden');
+        webcamControls.classList.remove('flex');
+        specimenLegend.classList.remove('hidden');
+        webcamIdleOverlay.classList.add('hidden');
+
+        sourceStatusBadge.className =
+          'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-500/40';
+        sourceStatusDot.className = 'w-2 h-2 rounded-full bg-cyan-400 animate-pulse';
+        sourceStatusText.textContent = 'Simulasi Virus Aktif';
+      } else {
+        tabWebcam.className =
+          'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow';
+        tabSimulasi.className =
+          'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-400 hover:text-white';
+
+        simControls.classList.add('hidden');
+        simControls.classList.remove('flex');
+        webcamControls.classList.remove('hidden');
+        webcamControls.classList.add('flex');
+        specimenLegend.classList.add('hidden');
+
+        if (!state.isWebcamStreaming) {
+          webcamIdleOverlay.classList.remove('hidden');
+          sourceStatusBadge.className =
+            'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800';
+          sourceStatusDot.className = 'w-2 h-2 rounded-full bg-slate-500';
+          sourceStatusText.textContent = 'Webcam Siaga';
+        }
+      }
+    }
+
+    async function populateCameraList() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
-
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoInputs = devices.filter((d) => d.kind === 'videoinput');
-
-        if (videoInputs.length > 1) {
-          cameraSelect.innerHTML = videoInputs
-            .map((device, index) => {
-              const label = device.label || `Kamera ${index + 1}`;
-              const selected = device.deviceId === state.selectedDeviceId ? 'selected' : '';
-              return `<option value="${device.deviceId}" ${selected}>${label}</option>`;
+        const cams = devices.filter((d) => d.kind === 'videoinput');
+        if (cams.length > 1) {
+          selectCameraDevice.innerHTML = cams
+            .map((cam, idx) => {
+              const label = cam.label || `Kamera ${idx + 1}`;
+              const sel = cam.deviceId === state.selectedDeviceId ? 'selected' : '';
+              return `<option value="${cam.deviceId}" ${sel}>${label}</option>`;
             })
             .join('');
-          cameraSelectWrapper.classList.remove('hidden');
+          selectCameraDevice.classList.remove('hidden');
         } else {
-          cameraSelectWrapper.classList.add('hidden');
+          selectCameraDevice.classList.add('hidden');
         }
       } catch (e) {
-        // Abaikan jika enumerateDevices dibatasi sebelum izin diberikan
+        // Abaikan jika browser membatasi daftar perangkat
       }
     }
 
-    // -------------------------------------------------------------------------
-    // 4. MULAI & HENTIKAN STREAMING WEBCAM KE CANVAS
-    // -------------------------------------------------------------------------
-    async function startCamera() {
-      hideError();
+    function showWebcamError(title, desc, tip) {
+      webcamErrorTitle.textContent = title;
+      webcamErrorDesc.textContent = desc;
+      webcamErrorTip.textContent = tip;
+      webcamErrorBox.classList.remove('hidden');
+    }
 
-      // Cek apakah browser mendukung MediaDevices API
+    function hideWebcamError() {
+      webcamErrorBox.classList.add('hidden');
+    }
+
+    async function startWebcamStream() {
+      hideWebcamError();
+
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showError(
-          'Browser Tidak Mendukung Akses Kamera',
-          'Browser atau lingkungan halaman ini tidak menyediakan API navigator.mediaDevices.getUserMedia.',
-          'Gunakan browser modern (Google Chrome, Mozilla Firefox, Microsoft Edge, atau Safari) melalui HTTPS atau localhost.'
+        showWebcamError(
+          'Browser Tidak Mendukung API Kamera',
+          'Browser Anda tidak menyediakan antarmuka navigator.mediaDevices.getUserMedia.',
+          'Gunakan Google Chrome, Firefox, Edge, atau Safari versi terbaru melalui koneksi HTTPS atau localhost.'
         );
         return;
       }
 
-      // Hentikan stream lama jika masih berjalan
-      stopCamera(false);
+      stopWebcamStream();
+      btnToggleWebcam.disabled = true;
+      btnToggleWebcam.textContent = 'Menghubungkan...';
 
-      toggleCameraBtn.disabled = true;
-      toggleCameraLabel.textContent = 'Menghubungkan...';
-
-      const videoConstraints = state.selectedDeviceId
-        ? { deviceId: { exact: state.selectedDeviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
-        : { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } };
+      const constraints = state.selectedDeviceId
+        ? { video: { deviceId: { exact: state.selectedDeviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }
+        : { video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false };
 
       try {
         let stream;
         try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: videoConstraints,
-            audio: false,
-          });
-        } catch (constraintErr) {
-          // Jika resolusi ideal/deviceId ditolak (OverconstrainedError), coba constraint dasar
-          if (constraintErr.name === 'OverconstrainedError') {
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (errConstraint) {
+          if (errConstraint.name === 'OverconstrainedError') {
             stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
           } else {
-            throw constraintErr;
+            throw errConstraint;
           }
         }
 
-        state.stream = stream;
+        state.webcamStream = stream;
         videoEl.srcObject = stream;
 
-        // Simpan deviceId aktif
-        const activeTrack = stream.getVideoTracks()[0];
-        if (activeTrack && activeTrack.getSettings) {
-          const settings = activeTrack.getSettings();
-          if (settings.deviceId) {
-            state.selectedDeviceId = settings.deviceId;
-          }
+        const track = stream.getVideoTracks()[0];
+        if (track && track.getSettings && track.getSettings().deviceId) {
+          state.selectedDeviceId = track.getSettings().deviceId;
         }
 
-        // Tunggu metadata video siap agar dimensi canvas sesuai resolusi kamera
         await new Promise((resolve) => {
-          if (videoEl.readyState >= 1) {
-            resolve();
-          } else {
-            videoEl.onloadedmetadata = () => resolve();
-          }
+          if (videoEl.readyState >= 1) resolve();
+          else videoEl.onloadedmetadata = () => resolve();
         });
 
         await videoEl.play();
+        setCanvasDimensions(videoEl.videoWidth || 1280, videoEl.videoHeight || 720);
 
-        // Atur ukuran resolusi internal canvas sesuai dimensi stream webcam
-        canvasEl.width = videoEl.videoWidth || 1280;
-        canvasEl.height = videoEl.videoHeight || 720;
+        state.isWebcamStreaming = true;
+        webcamIdleOverlay.classList.add('hidden');
 
-        state.isStreaming = true;
-        state.lastFpsTime = performance.now();
-        state.frameCounter = 0;
+        btnToggleWebcam.textContent = 'Hentikan Kamera';
+        btnToggleWebcam.className =
+          'px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow transition-colors';
 
-        updateCameraUIState(true);
-        await populateCameraDevices();
-
-        // Mulai loop rendering real-time dengan requestAnimationFrame
-        renderCanvasLoop();
-      } catch (err) {
-        const mapped = mapMediaErrorToIndonesian(err);
-        showError(mapped.title, mapped.message, mapped.hint);
-        stopCamera(true);
-      } finally {
-        toggleCameraBtn.disabled = false;
-      }
-    }
-
-    function stopCamera(resetCanvas = true) {
-      // Hentikan loop requestAnimationFrame
-      if (state.animationFrameId !== null) {
-        cancelAnimationFrame(state.animationFrameId);
-        state.animationFrameId = null;
-      }
-
-      // Matikan seluruh track video pada MediaStream agar lampu indikator webcam mati
-      if (state.stream) {
-        state.stream.getTracks().forEach((track) => track.stop());
-        state.stream = null;
-      }
-
-      videoEl.srcObject = null;
-      state.isStreaming = false;
-
-      if (resetCanvas) {
-        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-        updateCameraUIState(false);
-      }
-    }
-
-    function updateCameraUIState(isActive) {
-      if (isActive) {
-        cameraPlaceholder.classList.add('hidden');
-        canvasHud.classList.remove('hidden');
-        capturePhotoBtn.disabled = false;
-
-        // Ubah tombol utama menjadi tombol Hentikan Kamera
-        toggleCameraBtn.className =
-          'w-full py-3.5 px-5 rounded-2xl font-bold text-sm sm:text-base text-white bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-600/25 transition-all flex items-center justify-center gap-2.5 active:scale-[0.99]';
-        toggleCameraLabel.textContent = 'Hentikan Kamera';
-        toggleCameraIcon.innerHTML =
-          '<path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />';
-
-        // Status Header
-        statusBadge.className =
+        sourceStatusBadge.className =
           'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950/90 text-emerald-300 border border-emerald-500/40';
-        statusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
-        statusText.textContent = 'LIVE';
+        sourceStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
+        sourceStatusText.textContent = 'Webcam LIVE';
 
-        resolutionBadge.textContent = `${canvasEl.width} \u00D7 ${canvasEl.height} px`;
-      } else {
-        cameraPlaceholder.classList.remove('hidden');
-        canvasHud.classList.add('hidden');
-        capturePhotoBtn.disabled = true;
+        await populateCameraList();
+      } catch (err) {
+        let title = 'Gagal Mengaktifkan Kamera';
+        let desc = err && err.message ? err.message : 'Terjadi kendala saat mengakses webcam.';
+        let tip = 'Pastikan izin kamera diberikan pada browser Anda.';
 
-        // Kembalikan tombol utama menjadi Mulai Kamera
-        toggleCameraBtn.className =
-          'w-full py-3.5 px-5 rounded-2xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2.5 active:scale-[0.99]';
-        toggleCameraLabel.textContent = 'Mulai Kamera';
-        toggleCameraIcon.innerHTML =
-          '<path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />';
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          title = 'Izin Akses Kamera Ditolak';
+          desc = 'Permintaan akses kamera ditolak oleh pengguna atau pengaturan keamanan browser.';
+          tip = 'Klik ikon gembok/kamera di bilah alamat browser, izinkan akses Kamera, lalu tekan "Mulai Kamera".';
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          title = 'Perangkat Kamera Tidak Ditemukan';
+          desc = 'Tidak ada perangkat webcam yang terdeteksi pada komputer atau ponsel Anda.';
+          tip = 'Pastikan webcam terpasang dengan benar atau aktifkan kamera pada pengaturan perangkat.';
+        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+          title = 'Kamera Sedang Dipakai Aplikasi Lain';
+          desc = 'Webcam sedang digunakan oleh aplikasi lain (seperti Zoom, Meet, atau tab browser lain).';
+          tip = 'Tutup aplikasi lain yang menggunakan kamera, lalu coba mulai kembali.';
+        }
 
-        // Status Header
-        statusBadge.className =
+        showWebcamError(title, desc, tip);
+        stopWebcamStream();
+      } finally {
+        btnToggleWebcam.disabled = false;
+      }
+    }
+
+    function stopWebcamStream() {
+      if (state.webcamStream) {
+        state.webcamStream.getTracks().forEach((t) => t.stop());
+        state.webcamStream = null;
+      }
+      videoEl.srcObject = null;
+      state.isWebcamStreaming = false;
+
+      btnToggleWebcam.textContent = 'Mulai Kamera';
+      btnToggleWebcam.className =
+        'px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow transition-colors';
+
+      if (state.mode === 'webcam') {
+        webcamIdleOverlay.classList.remove('hidden');
+        sourceStatusBadge.className =
           'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800';
-        statusDot.className = 'w-2 h-2 rounded-full bg-slate-500';
-        statusText.textContent = 'Kamera Nonaktif';
-
-        resolutionBadge.textContent = '0 \u00D7 0 px';
+        sourceStatusDot.className = 'w-2 h-2 rounded-full bg-slate-500';
+        sourceStatusText.textContent = 'Webcam Nonaktif';
       }
     }
 
     // -------------------------------------------------------------------------
-    // 5. LOOP RENDERING REAL-TIME KE <CANVAS> (requestAnimationFrame + drawImage)
+    // 13. KONTROL PELACAKAN WARNA & NOTIFIKASI TOAST
     // -------------------------------------------------------------------------
-    function renderCanvasLoop() {
-      if (!state.isStreaming) return;
+    function setTrackingEnabled(enabled) {
+      state.trackingEnabled = enabled;
+      btnToggleTracking.setAttribute('aria-checked', String(enabled));
 
-      // Pastikan dimensi canvas tetap sinkron jika stream berubah ukuran
-      if (videoEl.videoWidth && videoEl.videoHeight) {
-        if (canvasEl.width !== videoEl.videoWidth || canvasEl.height !== videoEl.videoHeight) {
-          canvasEl.width = videoEl.videoWidth;
-          canvasEl.height = videoEl.videoHeight;
-          resolutionBadge.textContent = `${canvasEl.width} \u00D7 ${canvasEl.height} px`;
+      if (enabled) {
+        trackingSwitchPill.classList.remove('bg-slate-700');
+        trackingSwitchPill.classList.add('bg-cyan-500');
+        trackingSwitchKnob.classList.remove('translate-x-0.5');
+        trackingSwitchKnob.classList.add('translate-x-4');
+        trackingSwitchLabel.textContent = 'Aktif';
+        trackingSwitchLabel.classList.remove('text-slate-300');
+        trackingSwitchLabel.classList.add('text-cyan-400');
+
+        if (state.trackedMarkerId === null && state.markers.length > 0) {
+          state.trackedMarkerId = state.markers[0].id;
+          updateTrackedColorUI();
         }
-
-        ctx.save();
-
-        // Terapkan flip horizontal (Mode Cermin) langsung pada transformasi canvas
-        if (state.isMirrored) {
-          ctx.translate(canvasEl.width, 0);
-          ctx.scale(-1, 1);
-        }
-
-        // Terapkan filter canvas (jika browser mendukung ctx.filter secara native)
-        if (supportsNativeCanvasFilter) {
-          ctx.filter = FILTERS[state.activeFilter].css;
-        } else {
-          ctx.filter = 'none';
-        }
-
-        // Gambar frame video ke elemen <canvas>
-        ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
-        ctx.restore();
-
-        // Fallback manipulasi piksel jika browser lama tidak mendukung ctx.filter
-        if (!supportsNativeCanvasFilter && state.activeFilter !== 'normal') {
-          applyPixelFilterFallback(ctx, canvasEl.width, canvasEl.height, state.activeFilter);
-        }
-      }
-
-      // Hitung FPS (Frame Per Second) setiap 500ms
-      state.frameCounter++;
-      const now = performance.now();
-      if (now - state.lastFpsTime >= 500) {
-        const fps = Math.round((state.frameCounter * 1000) / (now - state.lastFpsTime));
-        hudFps.textContent = `${fps} FPS`;
-        state.frameCounter = 0;
-        state.lastFpsTime = now;
-      }
-
-      state.animationFrameId = requestAnimationFrame(renderCanvasLoop);
-    }
-
-    // Cadangan filter berbasis piksel (ImageData) untuk kompatibilitas lintas browser
-    function applyPixelFilterFallback(context, width, height, filterType) {
-      const imageData = context.getImageData(0, 0, width, height);
-      const data = imageData.data;
-
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-
-        if (filterType === 'grayscale') {
-          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-          data[i] = data[i + 1] = data[i + 2] = lum;
-        } else if (filterType === 'sepia') {
-          data[i] = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
-          data[i + 1] = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168);
-          data[i + 2] = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131);
-        } else if (filterType === 'invert') {
-          data[i] = 255 - r;
-          data[i + 1] = 255 - g;
-          data[i + 2] = 255 - b;
-        }
-      }
-
-      context.putImageData(imageData, 0, 0);
-    }
-
-    // -------------------------------------------------------------------------
-    // 6. KONTROL MODE CERMIN, FILTER CANVAS & AMBIL FOTO PNG
-    // -------------------------------------------------------------------------
-    function toggleMirrorMode() {
-      state.isMirrored = !state.isMirrored;
-      mirrorSwitch.setAttribute('aria-checked', String(state.isMirrored));
-
-      if (state.isMirrored) {
-        mirrorSwitch.classList.remove('bg-slate-700');
-        mirrorSwitch.classList.add('bg-cyan-500');
-        mirrorKnob.classList.remove('translate-x-0');
-        mirrorKnob.classList.add('translate-x-5');
-        hudMirrorLabel.textContent = 'Cermin: Aktif';
       } else {
-        mirrorSwitch.classList.remove('bg-cyan-500');
-        mirrorSwitch.classList.add('bg-slate-700');
-        mirrorKnob.classList.remove('translate-x-5');
-        mirrorKnob.classList.add('translate-x-0');
-        hudMirrorLabel.textContent = 'Cermin: Nonaktif';
+        trackingSwitchPill.classList.remove('bg-cyan-500');
+        trackingSwitchPill.classList.add('bg-slate-700');
+        trackingSwitchKnob.classList.remove('translate-x-4');
+        trackingSwitchKnob.classList.add('translate-x-0.5');
+        trackingSwitchLabel.textContent = 'Nonaktif';
+        trackingSwitchLabel.classList.remove('text-cyan-400');
+        trackingSwitchLabel.classList.add('text-slate-300');
+        state.trackingResult = null;
       }
+      renderMarkersSidebar();
     }
 
-    function selectFilter(filterKey) {
-      if (!FILTERS[filterKey]) return;
-      state.activeFilter = filterKey;
+    function showToast(message, swatchHex = '#06B6D4') {
+      toastText.textContent = message;
+      toastSwatch.style.backgroundColor = swatchHex;
+      toastBox.classList.remove('hidden');
 
-      const label = FILTERS[filterKey].label;
-      activeFilterBadge.textContent = label;
-      hudFilterLabel.textContent = `Filter: ${label}`;
-
-      filterButtons.forEach((btn) => {
-        const isSelected = btn.getAttribute('data-filter') === filterKey;
-        if (isSelected) {
-          btn.className =
-            'filter-btn p-3 rounded-2xl border border-cyan-500 bg-cyan-500/15 text-left transition-all flex items-center gap-2.5';
-        } else {
-          btn.className =
-            'filter-btn p-3 rounded-2xl border border-slate-800 bg-slate-950/70 hover:border-slate-700 text-left transition-all flex items-center gap-2.5';
-        }
-      });
-    }
-
-    function captureAndDownloadPNG() {
-      if (!state.isStreaming) return;
-
-      // Efek kilatan kamera (shutter flash)
-      shutterFlash.classList.remove('opacity-0');
-      shutterFlash.classList.add('opacity-80');
-      setTimeout(() => {
-        shutterFlash.classList.remove('opacity-80');
-        shutterFlash.classList.add('opacity-0');
-      }, 150);
-
-      // Ekspor isi canvas saat ini menjadi data URL PNG
-      const dataUrl = canvasEl.toDataURL('image/png');
-
-      // Buat nama file berstempel waktu
-      const now = new Date();
-      const pad = (n) => String(n).padStart(2, '0');
-      const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-      const filename = `webcam-canvas-${timestamp}.png`;
-
-      // Picu pengunduhan otomatis
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.href = dataUrl;
-      downloadAnchor.download = filename;
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      document.body.removeChild(downloadAnchor);
-
-      // Perbarui kartu pratinjau hasil tangkapan terakhir
-      state.captureCount += 1;
-      lastCaptureCard.classList.remove('hidden');
-      lastCaptureImg.src = dataUrl;
-      redownloadLink.href = dataUrl;
-      redownloadLink.download = filename;
-      captureCountBadge.textContent = `${state.captureCount} Foto`;
-      lastCaptureMeta.textContent = `${canvasEl.width}\u00D7${canvasEl.height} \u2022 ${FILTERS[state.activeFilter].label}`;
-
-      showToast('Foto berhasil ditangkap dan diunduh!', filename);
+      if (state.toastTimer) clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(() => {
+        toastBox.classList.add('hidden');
+      }, 3600);
     }
 
     // -------------------------------------------------------------------------
-    // 7. EVENT LISTENERS
+    // 14. EVENT LISTENERS & INISIALISASI HALAMAN
     // -------------------------------------------------------------------------
-    toggleCameraBtn.addEventListener('click', () => {
-      if (state.isStreaming) {
-        stopCamera(true);
-      } else {
-        startCamera();
-      }
+    tabSimulasi.addEventListener('click', () => switchMode('simulasi'));
+    tabWebcam.addEventListener('click', () => switchMode('webcam'));
+
+    btnToggleAnim.addEventListener('click', () => {
+      state.isSimAnimating = !state.isSimAnimating;
+      animIcon.textContent = state.isSimAnimating ? '⏸' : '▶';
+      animLabel.textContent = state.isSimAnimating ? 'Jeda Animasi' : 'Gerakkan Animasi';
     });
 
-    placeholderStartBtn.addEventListener('click', () => {
-      startCamera();
+    btnRandomizePos.addEventListener('click', () => {
+      initSimViruses(true);
+      showToast('Posisi keenam spesimen virus telah diacak ulang.', '#06B6D4');
     });
 
-    cameraSelect.addEventListener('change', (e) => {
+    btnToggleWebcam.addEventListener('click', () => {
+      if (state.isWebcamStreaming) stopWebcamStream();
+      else startWebcamStream();
+    });
+
+    btnOverlayStartCam.addEventListener('click', () => {
+      startWebcamStream();
+    });
+
+    chkMirror.addEventListener('change', (e) => {
+      state.isMirrored = e.target.checked;
+    });
+
+    selectCameraDevice.addEventListener('change', (e) => {
       state.selectedDeviceId = e.target.value;
-      if (state.isStreaming) {
-        startCamera();
-      }
+      if (state.isWebcamStreaming) startWebcamStream();
     });
 
-    mirrorSwitch.addEventListener('click', toggleMirrorMode);
+    btnCloseWebcamError.addEventListener('click', hideWebcamError);
 
-    filterButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const chosenFilter = btn.getAttribute('data-filter');
-        selectFilter(chosenFilter);
-      });
+    btnToggleTracking.addEventListener('click', () => {
+      setTrackingEnabled(!state.trackingEnabled);
     });
 
-    capturePhotoBtn.addEventListener('click', captureAndDownloadPNG);
+    sliderTolerance.addEventListener('input', (e) => {
+      state.colorTolerance = Number(e.target.value);
+      toleranceValueLabel.textContent = String(state.colorTolerance);
+    });
 
-    dismissErrorBtn.addEventListener('click', hideError);
+    btnDownloadPng.addEventListener('click', downloadCanvasAsPNG);
+    btnClearAll.addEventListener('click', clearAllMarkers);
 
-    // Pastikan stream kamera dibersihkan saat pengguna menutup/meninggalkan halaman
     window.addEventListener('beforeunload', () => {
-      stopCamera(false);
+      stopWebcamStream();
+    });
+
+    // Jalankan aplikasi saat halaman dimuat
+    window.addEventListener('DOMContentLoaded', () => {
+      initSimViruses(false);
+      renderMarkersSidebar();
+      requestAnimationFrame(mainRenderLoop);
     });
   </script>
 </body>
