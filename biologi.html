@@ -1,1 +1,2123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ViroSort: Misi Peranan Virus — Biologi SMA Kelas X</title>
 
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            lab: {
+              bg: '#f4f8fb',
+              card: '#ffffff',
+              darkBg: '#070d19',
+              darkCard: '#0f172a',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Custom Game Animations & Lab Micro-Interactions */
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    @keyframes floatVirus {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-7px) rotate(3deg); }
+    }
+
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      70% { transform: scale(1.12); opacity: 0; }
+      100% { transform: scale(1.12); opacity: 0; }
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.92) translateY(12px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @keyframes shakeCard {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-10px) rotate(-1.5deg); }
+      40% { transform: translateX(10px) rotate(1.5deg); }
+      60% { transform: translateX(-7px); }
+      80% { transform: translateX(7px); }
+    }
+
+    @keyframes scanBeam {
+      0%, 100% { top: 6%; opacity: 0.35; }
+      50% { top: 90%; opacity: 0.85; }
+    }
+
+    .animate-virus-float {
+      animation: floatVirus 3.8s ease-in-out infinite;
+    }
+
+    .animate-pop-in {
+      animation: popIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .animate-shake {
+      animation: shakeCard 0.42s ease-in-out;
+    }
+
+    .scanner-beam {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #06b6d4, #10b981, transparent);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.7);
+      animation: scanBeam 3.2s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    /* Biotech Grid Pattern Background */
+    .biotech-grid {
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(14, 165, 233, 0.14) 1px, transparent 0);
+      background-size: 26px 26px;
+    }
+
+    .dark .biotech-grid {
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(56, 189, 248, 0.12) 1px, transparent 0);
+      background-size: 26px 26px;
+    }
+
+    /* Dropzone highlight states */
+    .dropzone-active-good {
+      transform: scale(1.03);
+      border-color: #10b981 !important;
+      background-color: rgba(16, 185, 129, 0.16) !important;
+      box-shadow: 0 0 28px rgba(16, 185, 129, 0.35);
+    }
+
+    .dropzone-active-bad {
+      transform: scale(1.03);
+      border-color: #f43f5e !important;
+      background-color: rgba(244, 63, 94, 0.16) !important;
+      box-shadow: 0 0 28px rgba(244, 63, 94, 0.35);
+    }
+
+    /* Touch dragging helper */
+    #specimen-card {
+      touch-action: pan-y;
+      user-select: none;
+    }
+
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.65);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-lab-bg text-slate-800 dark:bg-lab-darkBg dark:text-slate-100 biotech-grid transition-colors duration-300 flex flex-col selection:bg-cyan-500 selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- TOP NAVIGATION BAR                                                    -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-white/85 dark:bg-slate-900/85 border-b border-slate-200/80 dark:border-slate-800 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
+      <!-- Brand Title -->
+      <button type="button" onclick="confirmReturnHome()" class="flex items-center gap-2.5 text-left group focus:outline-none">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-cyan-500/20 group-hover:scale-105 transition-transform shrink-0">
+          <!-- Custom SVG Bacteriophage Emblem -->
+          <svg class="w-6 h-6" viewBox="0 0 36 36" fill="none">
+            <polygon points="18,3 28,9 28,19 18,25 8,19 8,9" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="2.2"/>
+            <line x1="18" y1="25" x2="18" y2="31" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+            <polyline points="18,30 10,34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <polyline points="18,30 26,34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="18" cy="14" r="3" fill="currentColor"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-cyan-700 to-teal-600 dark:from-cyan-400 dark:to-teal-300 bg-clip-text text-transparent">
+              ViroSort
+            </span>
+            <span class="hidden sm:inline-block px-2 py-0.5 rounded-md bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 font-mono text-[10px] font-bold">
+              BIO-X
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">
+            Misi Peranan Virus • Biologi SMA Kelas X
+          </p>
+        </div>
+      </button>
+
+      <!-- Utility Controls: Encyclopedia, Sound Toggle, Dark/Light Mode -->
+      <div class="flex items-center gap-2">
+        <!-- Mini Encyclopedia Button -->
+        <button type="button" onclick="openEncyclopedia()"
+          class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/70 dark:hover:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 transition-all active:scale-95">
+          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span>Ensiklopedia<span class="hidden md:inline"> Mini</span></span>
+        </button>
+
+        <!-- Sound Effect Toggle Button -->
+        <button type="button" id="sound-toggle-btn" onclick="toggleSound()" aria-label="Suara Efek Game"
+          class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          title="Aktifkan / Matikan Efek Suara">
+          <!-- Sound ON icon -->
+          <svg id="icon-sound-on" class="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+          <!-- Sound OFF icon -->
+          <svg id="icon-sound-off" class="w-5 h-5 hidden text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+          </svg>
+        </button>
+
+        <!-- Dark / Light Mode Toggle Button -->
+        <button type="button" id="theme-toggle-btn" onclick="toggleTheme()" aria-label="Ganti Mode Gelap atau Terang"
+          class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          title="Ganti Mode Terang / Gelap">
+          <svg id="icon-sun" class="w-5 h-5 hidden dark:block text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg id="icon-moon" class="w-5 h-5 block dark:hidden text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN APPLICATION CONTAINER                                            -->
+  <!-- ===================================================================== -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- =================================================================== -->
+    <!-- SCREEN 1: LAYAR BERANDA & PILIHAN MODE                              -->
+    <!-- =================================================================== -->
+    <section id="screen-home" class="space-y-8 animate-pop-in">
+      
+      <!-- Hero Banner -->
+      <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-6 sm:p-10 shadow-xl shadow-slate-200/50 dark:shadow-none">
+        <!-- Decorative Top Gradient Bar -->
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-500"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div class="lg:col-span-7 space-y-5">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-50 dark:bg-cyan-950/80 border border-cyan-200 dark:border-cyan-800 text-cyan-800 dark:text-cyan-300 text-xs font-bold">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              SIMULASI LABORATORIUM BIOTEKNOLOGI • KELAS X SMA
+            </div>
+
+            <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+              ViroSort: <span class="bg-gradient-to-r from-cyan-600 to-teal-500 dark:from-cyan-400 dark:to-teal-300 bg-clip-text text-transparent">Misi Peranan Virus</span>
+            </h1>
+
+            <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
+              Selamat datang di Pusat Analisis Virologi! Uji ketajaman analisismu dalam memilah <strong>26 spesimen kasus virus</strong> nyata: mana yang berperan <strong>Menguntungkan</strong> dalam bioteknologi &amp; medis, dan mana yang <strong>Merugikan</strong> sebagai penyebab penyakit pada manusia, hewan, maupun tumbuhan.
+            </p>
+
+            <!-- 4 Animated Virus Morphology Preview Badges -->
+            <div class="flex flex-wrap items-center gap-2.5 pt-1">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-cyan-500"></span> Bakteriofag
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Ikosahedral
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-teal-500"></span> Heliks (Batang)
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span> Berselubung
+              </span>
+            </div>
+          </div>
+
+          <!-- Animated Vector Showcase -->
+          <div class="lg:col-span-5 flex justify-center">
+            <div class="relative w-full max-w-sm rounded-3xl bg-gradient-to-br from-slate-50 to-cyan-50/70 dark:from-slate-800/80 dark:to-slate-900 border border-slate-200 dark:border-slate-700 p-6 flex flex-col items-center text-center shadow-inner">
+              <div class="grid grid-cols-2 gap-4 w-full">
+                <div class="p-3 rounded-2xl bg-white dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center animate-virus-float" style="animation-delay: 0s;">
+                  <div id="hero-svg-phage" class="w-16 h-16"></div>
+                  <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 mt-1">Bakteriofag</span>
+                </div>
+                <div class="p-3 rounded-2xl bg-white dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center animate-virus-float" style="animation-delay: 0.6s;">
+                  <div id="hero-svg-enveloped" class="w-16 h-16"></div>
+                  <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 mt-1">Berselubung</span>
+                </div>
+                <div class="p-3 rounded-2xl bg-white dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center animate-virus-float" style="animation-delay: 1.2s;">
+                  <div id="hero-svg-icosa" class="w-16 h-16"></div>
+                  <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 mt-1">Ikosahedral</span>
+                </div>
+                <div class="p-3 rounded-2xl bg-white dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center animate-virus-float" style="animation-delay: 1.8s;">
+                  <div id="hero-svg-helical" class="w-16 h-16"></div>
+                  <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 mt-1">Heliks / TMV</span>
+                </div>
+              </div>
+              <p class="text-xs font-mono text-slate-500 dark:text-slate-400 mt-4">
+                Database: 12 Menguntungkan • 14 Merugikan
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Setup Panel: Player Name, Difficulty & Mode Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Identity & Difficulty -->
+        <div class="lg:col-span-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-lg space-y-6">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
+              Langkah 1 • Identitas &amp; Level
+            </span>
+            <h2 class="text-xl font-extrabold text-slate-900 dark:text-white mt-1">
+              Konfigurasi Peneliti
+            </h2>
+          </div>
+
+          <!-- Input Nama Pemain -->
+          <div class="space-y-2">
+            <label for="player-name-input" class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Nama Peneliti (Opsional)
+            </label>
+            <div class="relative">
+              <input id="player-name-input" type="text" maxlength="28" placeholder="Peneliti Muda"
+                class="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all" />
+              <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Pilihan Tingkat Kesulitan -->
+          <div class="space-y-2.5">
+            <span class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Pilih Tingkat Kesulitan
+            </span>
+            <div id="difficulty-selector" class="space-y-2.5">
+              <!-- Pemula -->
+              <button type="button" data-diff="pemula" onclick="selectDifficulty('pemula')"
+                class="diff-btn w-full p-3.5 rounded-2xl border-2 border-cyan-500 bg-cyan-50/70 dark:bg-cyan-950/40 text-left transition-all flex items-center justify-between gap-3">
+                <div>
+                  <div class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>Pemula</span>
+                    <span class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-mono">SANTAI</span>
+                  </div>
+                  <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">10 Kartu Spesimen • 30 detik/soal</p>
+                </div>
+                <span class="font-mono text-xs font-bold text-cyan-700 dark:text-cyan-300">10 Soal</span>
+              </button>
+
+              <!-- Peneliti -->
+              <button type="button" data-diff="peneliti" onclick="selectDifficulty('peneliti')"
+                class="diff-btn w-full p-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 hover:border-cyan-400 text-left transition-all flex items-center justify-between gap-3">
+                <div>
+                  <div class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>Peneliti</span>
+                    <span class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-mono">SEDANG</span>
+                  </div>
+                  <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">14 Kartu Spesimen • 20 detik/soal</p>
+                </div>
+                <span class="font-mono text-xs font-bold text-slate-600 dark:text-slate-300">14 Soal</span>
+              </button>
+
+              <!-- Virolog Ahli -->
+              <button type="button" data-diff="ahli" onclick="selectDifficulty('ahli')"
+                class="diff-btn w-full p-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 hover:border-cyan-400 text-left transition-all flex items-center justify-between gap-3">
+                <div>
+                  <div class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>Virolog Ahli</span>
+                    <span class="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 text-[10px] font-mono">CEPAT</span>
+                  </div>
+                  <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">20 Kartu Spesimen • 14 detik/soal</p>
+                </div>
+                <span class="font-mono text-xs font-bold text-slate-600 dark:text-slate-300">20 Soal</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: 2 Interactive Game Modes -->
+        <div class="lg:col-span-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-lg flex flex-col justify-between space-y-6">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">
+              Langkah 2 • Pilih Mode Misi
+            </span>
+            <h2 class="text-xl font-extrabold text-slate-900 dark:text-white mt-1">
+              Mulai Simulasi Laboratorium
+            </h2>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+            <!-- Mode 1: Sortir Cepat (Bio-Sorter) -->
+            <div class="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-b from-emerald-50/60 to-white dark:from-emerald-950/25 dark:to-slate-900 p-5 flex flex-col justify-between space-y-5 hover:border-emerald-500 transition-all shadow-sm">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-mono text-xs font-bold">
+                    MODE 1
+                  </span>
+                  <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Drag / Klik / Keyboard</span>
+                </div>
+                <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">
+                  Sortir Cepat (Bio-Sorter)
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Kartu spesimen kasus virus muncul di pemindai. Seret kartu ke wadah <strong>MENGUNTUNGKAN</strong> atau <strong>MERUGIKAN</strong>, klik tombol, atau gunakan tombol panah <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-mono text-[11px]">←</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-mono text-[11px]">→</kbd>.
+                </p>
+              </div>
+              <button type="button" onclick="startGame('sorter')"
+                class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center justify-center gap-2">
+                <span>Mainkan Bio-Sorter</span>
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Mode 2: Detektif Kasus & Target -->
+            <div class="rounded-2xl border-2 border-cyan-500/40 bg-gradient-to-b from-cyan-50/60 to-white dark:from-cyan-950/25 dark:to-slate-900 p-5 flex flex-col justify-between space-y-5 hover:border-cyan-500 transition-all shadow-sm">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-lg bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 font-mono text-xs font-bold">
+                    MODE 2
+                  </span>
+                  <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">+75 Poin Bonus!</span>
+                </div>
+                <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">
+                  Detektif Kasus &amp; Target
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Tantangan <strong>2 tahap</strong> per kasus! Tentukan peran utama (Menguntungkan / Merugikan), lalu identifikasi <strong>sub-kategori spesifiknya</strong> (Vaksin, Biopestisida, Rekayasa Genetika, Penyakit Manusia/Hewan/Tumbuhan).
+                </p>
+              </div>
+              <button type="button" onclick="startGame('detective')"
+                class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 flex items-center justify-center gap-2">
+                <span>Mainkan Mode Detektif</span>
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Tips Footer -->
+          <div class="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-300">
+            <span>💡 <strong>Tips Skor Tinggi:</strong> Jawab beruntun untuk aktifkan pengali Combo hingga <strong>4x</strong>!</span>
+            <span class="font-mono text-cyan-700 dark:text-cyan-400 font-semibold">3x Bio-Shield</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SCREEN 2: ARENA PERMAINAN AKTIF                                     -->
+    <!-- =================================================================== -->
+    <section id="screen-game" class="hidden space-y-5">
+      
+      <!-- Top HUD Status Bar -->
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 shadow-md">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          
+          <!-- Player & Progress -->
+          <div class="flex items-center gap-3">
+            <span id="hud-mode-badge" class="px-2.5 py-1 rounded-lg bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 font-mono text-xs font-bold">
+              BIO-SORTER
+            </span>
+            <div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">
+                Spesimen <strong id="hud-question-progress" class="font-mono text-slate-900 dark:text-white">1 / 10</strong>
+              </div>
+              <div id="hud-player-name" class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[140px]">
+                Peneliti Muda
+              </div>
+            </div>
+          </div>
+
+          <!-- Center: 3 Bio-Shields (Lives) -->
+          <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700" title="Bio-Shield (Nyawa Tersisa)">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 mr-1 hidden sm:inline">SHIELD:</span>
+            <div id="hud-shields" class="flex items-center gap-1">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <!-- Right: Score & Combo Badge -->
+          <div class="flex items-center gap-3">
+            <div id="hud-combo-badge" class="px-3 py-1.5 rounded-xl bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 font-mono text-xs font-extrabold transition-transform">
+              1x COMBO
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Skor</div>
+              <div id="hud-score" class="font-mono text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white leading-none">
+                0
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Countdown Timer Bar -->
+        <div class="mt-3.5 space-y-1">
+          <div class="flex items-center justify-between text-[11px] font-mono">
+            <span class="text-slate-500 dark:text-slate-400">Waktu Pemindaian</span>
+            <span id="hud-timer-text" class="font-bold text-cyan-700 dark:text-cyan-400">30.0 dtk</span>
+          </div>
+          <div class="w-full h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+            <div id="hud-timer-bar" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 transition-all duration-100 w-full rounded-full"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Sorting Arena: Left Dropzone | Center Specimen Scanner | Right Dropzone -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
+        
+        <!-- LEFT DROPZONE / BUTTON: MENGUNTUNGKAN (Emerald Green) -->
+        <div id="zone-menguntungkan"
+          ondragover="handleDragOver(event, 'menguntungkan')"
+          ondragleave="handleDragLeave('menguntungkan')"
+          ondrop="handleDrop(event, 'menguntungkan')"
+          onclick="handlePrimaryChoice('menguntungkan')"
+          role="button" tabindex="0"
+          class="lg:col-span-3 order-2 lg:order-1 cursor-pointer rounded-3xl border-2 border-dashed border-emerald-400/80 dark:border-emerald-600/70 bg-emerald-50/70 hover:bg-emerald-100/80 dark:bg-emerald-950/25 dark:hover:bg-emerald-950/45 p-5 flex flex-col items-center justify-center text-center transition-all select-none group active:scale-95">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform mb-3">
+            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <span class="font-extrabold text-base sm:text-lg text-emerald-800 dark:text-emerald-300 tracking-tight">
+            MENGUNTUNGKAN
+          </span>
+          <span class="text-xs text-emerald-700/80 dark:text-emerald-400/80 mt-1">
+            Seret ke sini / Klik
+          </span>
+          <span class="hidden lg:inline-block mt-3 px-2.5 py-1 rounded-lg bg-emerald-200/70 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-200 font-mono text-[11px] font-bold">
+            Tombol [←] atau [A]
+          </span>
+        </div>
+
+        <!-- CENTER SPECIMEN SCANNER & CARD -->
+        <div class="lg:col-span-6 order-1 lg:order-2 flex flex-col justify-center">
+          <div id="specimen-card" draggable="true"
+            ondragstart="handleDragStart(event)"
+            ondragend="handleDragEnd()"
+            class="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 p-6 sm:p-8 shadow-xl cursor-grab active:cursor-grabbing transition-transform duration-200">
+            
+            <!-- Animated Scanner Beam -->
+            <div class="scanner-beam"></div>
+
+            <!-- Card Top Metadata -->
+            <div class="flex items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <span id="card-specimen-code" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-xs font-bold">
+                SPESIMEN #01
+              </span>
+              <span id="card-morphology-tag" class="px-2.5 py-1 rounded-lg bg-cyan-50 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300 font-mono text-xs font-semibold">
+                Morfologi: Bakteriofag
+              </span>
+            </div>
+
+            <!-- Virus SVG Illustration & Case Content -->
+            <div class="py-5 flex flex-col items-center text-center space-y-4">
+              <div id="card-virus-svg" class="w-24 h-24 sm:w-28 sm:h-28 p-3 rounded-3xl bg-gradient-to-br from-slate-50 to-cyan-50 dark:from-slate-800 dark:to-slate-950 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center shadow-inner animate-virus-float">
+                <!-- Dynamic SVG injected here -->
+              </div>
+
+              <div class="space-y-1.5">
+                <h2 id="card-title" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white leading-snug">
+                  Nama Kasus Virus
+                </h2>
+                <p id="card-virus-name" class="font-mono text-xs sm:text-sm font-semibold text-cyan-700 dark:text-cyan-400">
+                  Nama Virus (Asam Nukleat)
+                </p>
+              </div>
+
+              <p id="card-clue" class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-700/70">
+                Deskripsi kasus biologis spesimen akan ditampilkan di sini.
+              </p>
+            </div>
+
+            <!-- Drag Instruction Hint -->
+            <div id="drag-hint-bar" class="pt-2 text-center text-[11px] font-medium text-slate-400 dark:text-slate-500">
+              Geser kartu ke kiri/kanan atau pilih wadah klasifikasi
+            </div>
+          </div>
+
+          <!-- MODE 2 STAGE 2 PANEL: SUB-CATEGORY DETECTIVE SELECTION -->
+          <div id="detective-stage2-panel" class="hidden mt-4 rounded-3xl bg-indigo-50/90 dark:bg-indigo-950/60 border-2 border-indigo-400 dark:border-indigo-700 p-5 sm:p-6 shadow-lg animate-pop-in space-y-4">
+            <div class="flex items-center justify-between gap-2">
+              <span class="px-3 py-1 rounded-lg bg-indigo-600 text-white font-mono text-xs font-bold">
+                TAHAP 2 • DETEKTIF TARGET
+              </span>
+              <span class="text-xs font-bold text-indigo-800 dark:text-indigo-300">
+                Bonus +75 Poin!
+              </span>
+            </div>
+            <p id="stage2-prompt" class="text-sm font-bold text-slate-900 dark:text-white">
+              Pilih sub-kategori target spesifik dari peranan virus ini:
+            </p>
+            <div id="stage2-options" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <!-- Populated dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- EDUCATIONAL FEEDBACK PANEL ("CATATAN LAB") -->
+          <div id="lab-note-panel" class="hidden mt-4 rounded-3xl border-2 p-5 sm:p-6 shadow-xl animate-pop-in space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <span id="lab-note-status-icon" class="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold"></span>
+                <div>
+                  <h3 id="lab-note-heading" class="font-extrabold text-base sm:text-lg">
+                    IDENTIFIKASI AKURAT!
+                  </h3>
+                  <p id="lab-note-subbadge" class="text-xs font-mono font-semibold"></p>
+                </div>
+              </div>
+              <span id="lab-note-points" class="px-3 py-1 rounded-xl font-mono text-sm font-extrabold">
+                +120 Poin
+              </span>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-white/80 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+              <span class="font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-wider text-[11px] block mb-1">
+                🔬 Catatan Lab Biologi:
+              </span>
+              <p id="lab-note-text"></p>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 dark:text-slate-300 select-none">
+                <input id="auto-advance-checkbox" type="checkbox" class="w-4 h-4 rounded text-cyan-600 focus:ring-cyan-500" />
+                <span>Lanjut otomatis (4 dtk)</span>
+              </label>
+
+              <button type="button" id="next-card-btn" onclick="advanceToNextCard()"
+                class="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 font-bold text-sm shadow-md transition-all active:scale-95 flex items-center gap-2">
+                <span id="next-card-btn-label">Kartu Berikutnya</span>
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT DROPZONE / BUTTON: MERUGIKAN (Coral / Rose Red) -->
+        <div id="zone-merugikan"
+          ondragover="handleDragOver(event, 'merugikan')"
+          ondragleave="handleDragLeave('merugikan')"
+          ondrop="handleDrop(event, 'merugikan')"
+          onclick="handlePrimaryChoice('merugikan')"
+          role="button" tabindex="0"
+          class="lg:col-span-3 order-3 cursor-pointer rounded-3xl border-2 border-dashed border-rose-400/80 dark:border-rose-600/70 bg-rose-50/70 hover:bg-rose-100/80 dark:bg-rose-950/25 dark:hover:bg-rose-950/45 p-5 flex flex-col items-center justify-center text-center transition-all select-none group active:scale-95">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-500/30 group-hover:scale-110 transition-transform mb-3">
+            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <span class="font-extrabold text-base sm:text-lg text-rose-800 dark:text-rose-300 tracking-tight">
+            MERUGIKAN
+          </span>
+          <span class="text-xs text-rose-700/80 dark:text-rose-400/80 mt-1">
+            Seret ke sini / Klik
+          </span>
+          <span class="hidden lg:inline-block mt-3 px-2.5 py-1 rounded-lg bg-rose-200/70 dark:bg-rose-900/60 text-rose-900 dark:text-rose-200 font-mono text-[11px] font-bold">
+            Tombol [→] atau [D]
+          </span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SCREEN 3: LAYAR HASIL AKHIR & RAPOR EVALUASI                        -->
+    <!-- =================================================================== -->
+    <section id="screen-results" class="hidden space-y-8 animate-pop-in">
+      
+      <!-- Summary Trophy Card -->
+      <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-10 shadow-xl">
+        <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 via-emerald-500 to-amber-400"></div>
+
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+          <div class="space-y-4">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 font-mono text-xs font-bold">
+              <span>🏆 LAPORAN AKHIR ANALISIS VIROLOGI</span>
+            </div>
+
+            <div>
+              <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                Peneliti: <strong id="res-player-name" class="text-slate-900 dark:text-white">Peneliti Muda</strong> • <span id="res-mode-diff">Bio-Sorter (Pemula)</span>
+              </p>
+              <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1">
+                Gelar: <span id="res-rank-title" class="bg-gradient-to-r from-cyan-600 to-teal-500 dark:from-cyan-400 dark:to-teal-300 bg-clip-text text-transparent">Doktor Virologi</span>
+              </h2>
+            </div>
+
+            <p id="res-rank-desc" class="text-sm text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed">
+              Deskripsi pencapaian pemain akan tampil di sini.
+            </p>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-3 pt-2">
+              <button type="button" onclick="replaySameSettings()"
+                class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Main Lagi</span>
+              </button>
+
+              <button type="button" onclick="goHomeScreen()"
+                class="px-6 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-sm border border-slate-300 dark:border-slate-700 transition-all active:scale-95">
+                Ganti Mode / Level
+              </button>
+            </div>
+          </div>
+
+          <!-- Key Metrics Grid -->
+          <div class="grid grid-cols-3 gap-3 sm:gap-4 shrink-0">
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Skor</span>
+              <span id="res-total-score" class="font-mono text-2xl sm:text-3xl font-extrabold text-cyan-600 dark:text-cyan-400 mt-1 block">0</span>
+            </div>
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Akurasi</span>
+              <span id="res-accuracy" class="font-mono text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 block">0%</span>
+            </div>
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Max Combo</span>
+              <span id="res-max-combo" class="font-mono text-2xl sm:text-3xl font-extrabold text-amber-500 mt-1 block">1x</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Recap Table -->
+      <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-lg">
+        <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+              Rapor Evaluasi &amp; Pembahasan Spesimen
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Tinjau kembali seluruh kartu yang telah diuji beserta catatan ilmiahnya
+            </p>
+          </div>
+          <span id="res-summary-ratio" class="px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
+            0 / 0 Benar
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-slate-50 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                <th class="py-3.5 px-4 font-bold">No</th>
+                <th class="py-3.5 px-4 font-bold">Spesimen Kasus &amp; Virus</th>
+                <th class="py-3.5 px-4 font-bold">Jawabanmu</th>
+                <th class="py-3.5 px-4 font-bold">Kunci &amp; Sub-Kategori</th>
+                <th class="py-3.5 px-4 font-bold">Status</th>
+                <th class="py-3.5 px-4 font-bold">Catatan Lab</th>
+              </tr>
+            </thead>
+            <tbody id="res-recap-tbody" class="divide-y divide-slate-200 dark:divide-slate-800">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: ENSIKLOPEDIA MINI PERANAN VIRUS (26 KARTU LENGKAP)             -->
+  <!-- ===================================================================== -->
+  <div id="encyclopedia-modal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl animate-pop-in overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="p-5 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+        <div>
+          <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
+            Database Kurikulum Biologi Kelas X
+          </span>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            Ensiklopedia Mini Peranan Virus (26 Spesimen)
+          </h2>
+        </div>
+        <button type="button" onclick="closeEncyclopedia()" aria-label="Tutup Ensiklopedia"
+          class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Filter & Search Controls -->
+      <div class="p-4 sm:px-6 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <!-- Main Role Filter Pills -->
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="setEncyFilter('all')" id="ency-tab-all"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-cyan-600 text-white shadow-sm transition-all">
+              Semua (26)
+            </button>
+            <button type="button" onclick="setEncyFilter('menguntungkan')" id="ency-tab-menguntungkan"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-all">
+              Menguntungkan (12)
+            </button>
+            <button type="button" onclick="setEncyFilter('merugikan')" id="ency-tab-merugikan"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-all">
+              Merugikan (14)
+            </button>
+          </div>
+
+          <!-- Search Box -->
+          <div class="relative w-full sm:w-64">
+            <input id="ency-search-input" type="text" placeholder="Cari virus, penyakit, vaksin..."
+              class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards Scrollable List -->
+      <div id="ency-cards-grid" class="p-5 sm:p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL KONFIRMASI KELUAR MISI (CUSTOM NON-BLOCKING DIALOG)             -->
+  <!-- ===================================================================== -->
+  <div id="confirm-home-modal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl max-w-md w-full p-6 shadow-2xl animate-pop-in space-y-5">
+      <div class="space-y-2">
+        <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">
+          Batalkan Misi Laboratorium?
+        </h3>
+        <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          Progres skor dan rangkaian kartu pada sesi permainan saat ini akan dihentikan jika kembali ke layar beranda.
+        </p>
+      </div>
+      <div class="flex items-center justify-end gap-3">
+        <button type="button" onclick="closeConfirmHome()"
+          class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          Lanjut Bermain
+        </button>
+        <button type="button" onclick="forceReturnHome()"
+          class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold shadow-md transition-colors">
+          Ya, Ke Beranda
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT GAME ENGINE, WEB AUDIO SYNTH, & 26 VIRUS CARDS DATABASE    -->
+  <!-- ===================================================================== -->
+  <script>
+    // =========================================================================
+    // 1. WEB AUDIO API SOUND EFFECTS SYNTHESIZER (NO EXTERNAL FILES)
+    // =========================================================================
+    const SoundFX = (() => {
+      let audioCtx = null;
+      let enabled = true;
+
+      function ensureContext() {
+        if (!enabled) return null;
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+          }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      }
+
+      function playTone(freq, type, duration, delay = 0, volume = 0.14) {
+        const ctx = ensureContext();
+        if (!ctx) return;
+
+        const now = ctx.currentTime + delay;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(volume, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration + 0.02);
+      }
+
+      return {
+        isEnabled: () => enabled,
+        toggle: () => {
+          enabled = !enabled;
+          if (enabled) ensureContext();
+          return enabled;
+        },
+        click: () => {
+          playTone(620, 'triangle', 0.07, 0, 0.1);
+        },
+        cardFlip: () => {
+          playTone(360, 'sine', 0.08, 0, 0.08);
+          playTone(540, 'sine', 0.09, 0.05, 0.08);
+        },
+        correct: (combo = 1) => {
+          const pitchShift = Math.min(combo - 1, 4) * 45;
+          playTone(523.25 + pitchShift, 'triangle', 0.14, 0, 0.16);
+          playTone(659.25 + pitchShift, 'triangle', 0.16, 0.08, 0.16);
+          playTone(783.99 + pitchShift, 'sine', 0.24, 0.16, 0.18);
+        },
+        comboUp: () => {
+          playTone(587.33, 'sine', 0.12, 0, 0.14);
+          playTone(783.99, 'sine', 0.12, 0.07, 0.14);
+          playTone(1046.5, 'triangle', 0.28, 0.14, 0.18);
+        },
+        wrong: () => {
+          playTone(230, 'sawtooth', 0.18, 0, 0.14);
+          playTone(175, 'sawtooth', 0.28, 0.13, 0.15);
+        },
+        victory: () => {
+          playTone(523.25, 'triangle', 0.15, 0, 0.16);
+          playTone(659.25, 'triangle', 0.15, 0.12, 0.16);
+          playTone(783.99, 'triangle', 0.15, 0.24, 0.16);
+          playTone(1046.5, 'triangle', 0.42, 0.36, 0.2);
+        }
+      };
+    })();
+
+    // =========================================================================
+    // 2. CUSTOM VECTOR SVG VIRUS ILLUSTRATIONS (4 MORPHOLOGIES)
+    // =========================================================================
+    function getVirusSVG(morphology, accent = 'cyan') {
+      if (morphology === 'bacteriophage') {
+        return `
+          <svg viewBox="0 0 100 100" class="w-full h-full" fill="none">
+            <polygon points="50,6 72,19 72,42 50,55 28,42 28,19" fill="#06b6d4" fill-opacity="0.2" stroke="#0891b2" stroke-width="3"/>
+            <path d="M43,21 C57,25 43,33 57,37" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+            <rect x="44" y="55" width="12" height="24" rx="2" fill="#0d9488"/>
+            <line x1="44" y1="62" x2="56" y2="62" stroke="#ccfbf1" stroke-width="1.5"/>
+            <line x1="44" y1="69" x2="56" y2="69" stroke="#ccfbf1" stroke-width="1.5"/>
+            <polyline points="44,79 25,72 14,93" stroke="#0284c7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="46,79 30,84 24,95" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="56,79 75,72 86,93" stroke="#0284c7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="54,79 70,84 76,95" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        `;
+      }
+      if (morphology === 'icosahedral') {
+        return `
+          <svg viewBox="0 0 100 100" class="w-full h-full" fill="none">
+            <polygon points="50,14 82,32 82,68 50,86 18,68 18,32" fill="#6366f1" fill-opacity="0.22" stroke="#4f46e5" stroke-width="3"/>
+            <polygon points="50,14 70,50 30,50" fill="#818cf8" fill-opacity="0.3" stroke="#6366f1" stroke-width="1.5"/>
+            <polygon points="30,50 70,50 50,86" fill="#4f46e5" fill-opacity="0.25" stroke="#6366f1" stroke-width="1.5"/>
+            <line x1="50" y1="14" x2="50" y2="5" stroke="#06b6d4" stroke-width="2.5"/>
+            <circle cx="50" cy="5" r="3" fill="#06b6d4"/>
+            <line x1="82" y1="32" x2="91" y2="27" stroke="#06b6d4" stroke-width="2.5"/>
+            <circle cx="91" cy="27" r="3" fill="#06b6d4"/>
+            <line x1="82" y1="68" x2="91" y2="73" stroke="#06b6d4" stroke-width="2.5"/>
+            <circle cx="91" cy="73" r="3" fill="#06b6d4"/>
+            <line x1="50" y1="86" x2="50" y2="95" stroke="#06b6d4" stroke-width="2.5"/>
+            <circle cx="50" cy="95" r="3" fill="#06b6d4"/>
+            <line x1="18" y1="68" x2="9" y2="73" stroke="#06b6d4" stroke-width="2.5"/>
+            <circle cx="9" cy="73" r="3" fill="#06b6d4"/>
+            <line x1="18" y1="32" x2="9" y2="27" stroke="#06b6d4" stroke-width="2.5"/>
+            <circle cx="9" cy="27" r="3" fill="#06b6d4"/>
+          </svg>
+        `;
+      }
+      if (morphology === 'helical') {
+        return `
+          <svg viewBox="0 0 100 100" class="w-full h-full" fill="none">
+            <g transform="rotate(-28 50 50)">
+              <rect x="12" y="34" width="76" height="32" rx="16" fill="#14b8a6" fill-opacity="0.25" stroke="#0d9488" stroke-width="3"/>
+              <path d="M22,50 Q31,38 40,50 T58,50 T76,50" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+              <line x1="28" y1="34" x2="28" y2="66" stroke="#0d9488" stroke-width="1.5" stroke-opacity="0.5"/>
+              <line x1="43" y1="34" x2="43" y2="66" stroke="#0d9488" stroke-width="1.5" stroke-opacity="0.5"/>
+              <line x1="58" y1="34" x2="58" y2="66" stroke="#0d9488" stroke-width="1.5" stroke-opacity="0.5"/>
+              <line x1="73" y1="34" x2="73" y2="66" stroke="#0d9488" stroke-width="1.5" stroke-opacity="0.5"/>
+            </g>
+          </svg>
+        `;
+      }
+      // Default: 'enveloped'
+      return `
+        <svg viewBox="0 0 100 100" class="w-full h-full" fill="none">
+          <circle cx="50" cy="50" r="27" fill="#f43f5e" fill-opacity="0.2" stroke="#e11d48" stroke-width="3"/>
+          <circle cx="50" cy="50" r="16" fill="#be123c" fill-opacity="0.25" stroke="#fb7185" stroke-width="1.8" stroke-dasharray="4 3"/>
+          <path d="M41,47 Q50,39 59,47 T44,56" stroke="#facc15" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="50" y1="12" x2="50" y2="23" stroke="#e11d48" stroke-width="3"/>
+          <circle cx="50" cy="11" r="3.5" fill="#f43f5e"/>
+          <line x1="50" y1="77" x2="50" y2="88" stroke="#e11d48" stroke-width="3"/>
+          <circle cx="50" cy="89" r="3.5" fill="#f43f5e"/>
+          <line x1="12" y1="50" x2="23" y2="50" stroke="#e11d48" stroke-width="3"/>
+          <circle cx="11" cy="50" r="3.5" fill="#f43f5e"/>
+          <line x1="77" y1="50" x2="88" y2="50" stroke="#e11d48" stroke-width="3"/>
+          <circle cx="89" cy="50" r="3.5" fill="#f43f5e"/>
+          <line x1="23" y1="23" x2="31" y2="31" stroke="#e11d48" stroke-width="3"/>
+          <circle cx="22" cy="22" r="3" fill="#f43f5e"/>
+          <line x1="69" y1="69" x2="77" y2="77" stroke="#e11d48" stroke-width="3"/>
+          <circle cx="78" cy="78" r="3" fill="#f43f5e"/>
+          <line x1="77" y1="23" x2="69" y2="31" stroke="#e11d48" stroke-width="3"/>
+          <circle cx="78" cy="22" r="3" fill="#f43f5e"/>
+          <line x1="31" y1="69" x2="23" y2="77" stroke="#e11d48" stroke-width="3"/>
+          <circle cx="22" cy="78" r="3" fill="#f43f5e"/>
+        </svg>
+      `;
+    }
+
+    const MORPHOLOGY_LABELS = {
+      bacteriophage: 'Bakteriofag (Kompleks)',
+      icosahedral: 'Ikosahedral (Polihedral)',
+      helical: 'Heliks (Batang)',
+      enveloped: 'Berselubung (Sferis)'
+    };
+
+    // =========================================================================
+    // 3. DATABASE 26 KARTU KASUS PERANAN VIRUS (KURIKULUM SMA KELAS X)
+    // =========================================================================
+    const VIRUS_CARDS = [
+      // --- KELOMPOK MENGUNTUNGKAN (12 KASUS) ---
+      {
+        id: 1,
+        title: 'Pembuatan Vaksin Konvensional & Modern',
+        virusName: 'Poliovirus / Measles / Vektor Adenovirus',
+        morphology: 'icosahedral',
+        role: 'menguntungkan',
+        subCategory: 'Terapi Medis & Vaksin',
+        clue: 'Partikel virus yang telah dilemahkan (attenuated) atau dimatikan disuntikkan ke tubuh manusia untuk melatih sel limfosit B dan T membentuk antibodi serta sel memori.',
+        labNote: 'Vaksin merangsang respons imun spesifik tanpa menimbulkan sakit parah. Contohnya vaksin Polio (Salk/Sabin), Campak, dan vaksin COVID-19 berbasis vektor Adenovirus.'
+      },
+      {
+        id: 2,
+        title: 'Terapi Fag Pembasmi Bakteri Kebal Antibiotik',
+        virusName: 'Bacteriophage T4 / Phage Cocktail',
+        morphology: 'bacteriophage',
+        role: 'menguntungkan',
+        subCategory: 'Terapi Medis & Vaksin',
+        clue: 'Virus pemakan bakteri digunakan secara klinis untuk melisiskan bakteri patogen superbug (seperti MRSA) yang sudah kebal terhadap berbagai jenis obat antibiotik.',
+        labNote: 'Terapi fag memanfaatkan siklus litik bakteriofag yang sangat spesifik hanya menyerang bakteri target sehingga aman bagi sel-sel jaringan tubuh manusia.'
+      },
+      {
+        id: 3,
+        title: 'Biopestisida Pembasmi Ulat Hama Pertanian',
+        virusName: 'Baculovirus / Nuclear Polyhedrosis Virus (NPV)',
+        morphology: 'helical',
+        role: 'menguntungkan',
+        subCategory: 'Biopestisida & Pertanian',
+        clue: 'Disemprotkan pada lahan pertanian untuk membasmi larva ulat grayak (Spodoptera litura) pemakan daun secara alami tanpa mencemari tanah maupun membahayakan serangga penyerbuk.',
+        labNote: 'Baculovirus membentuk kristal polihedra yang larut di usus serangga hama yang bersifat basa, menginfeksi selnya hingga mati tanpa meracuni manusia maupun tanaman.'
+      },
+      {
+        id: 4,
+        title: 'Vektor Terapi Gen Penyakit Genetik',
+        virusName: 'Adeno-Associated Virus (AAV) / Lentivirus',
+        morphology: 'icosahedral',
+        role: 'menguntungkan',
+        subCategory: 'Rekayasa Genetika',
+        clue: 'Virus yang sifat patogennya telah dihapus dimanfaatkan sebagai "kurir" untuk mengantarkan salinan gen sehat ke dalam sel pasien penderita kelainan genetik bawaan.',
+        labNote: 'Kemampuan alami virus dalam menyisipkan materi genetik ke sel inang dimanfaatkan dalam terapi gen untuk mengobati penyakit seperti distrofi otot dan hemofilia.'
+      },
+      {
+        id: 5,
+        title: 'Terapi Onkolitik Penghancur Sel Kanker',
+        virusName: 'Talimogene laherparepvec (Virus Onkolitik)',
+        morphology: 'enveloped',
+        role: 'menguntungkan',
+        subCategory: 'Terapi Medis & Vaksin',
+        clue: 'Virus hasil rekayasa bioteknologi diprogram agar bereplikasi secara selektif hanya di dalam sel tumor ganas hingga sel kanker tersebut pecah (lisis) dan memicu serangan sistem imun.',
+        labNote: 'Sel kanker sering memiliki jalur pertahanan antivirus yang lemah, sehingga virus onkolitik mampu menghancurkan sel tumor tanpa merusak jaringan sehat di sekitarnya.'
+      },
+      {
+        id: 6,
+        title: 'Produksi Interferon & Insulin Rekombinan',
+        virusName: 'Vektor Virus Rekombinan / Baculovirus Expression',
+        morphology: 'bacteriophage',
+        role: 'menguntungkan',
+        subCategory: 'Rekayasa Genetika',
+        clue: 'Gen manusia pengode protein antivirus (interferon) atau hormon insulin disisipkan melalui vektor virus ke sel inang kultur untuk diproduksi secara massal dalam industri farmasi.',
+        labNote: 'Sistem ekspresi berbasis vektor virus memungkinkan sintesis protein terapeutik kompleks dalam skala besar dengan tingkat kemurnian tinggi.'
+      },
+      {
+        id: 7,
+        title: 'Pembuatan Antitoksin Difteri (Siklus Lisogenik)',
+        virusName: 'Profag pada bakteri Corynebacterium diphtheriae',
+        morphology: 'bacteriophage',
+        role: 'menguntungkan',
+        subCategory: 'Terapi Medis & Vaksin',
+        clue: 'DNA virus profag digabungkan ke kromosom bakteri penghasil toksin agar memproduksi antitoksin dalam jumlah aman, lalu diekstraksi sebagai serum penawar racun.',
+        labNote: 'Melalui siklus lisogenik, profag memodifikasi ekspresi gen bakteri inang sehingga menghasilkan zat antitoksin yang berguna menetralkan racun bakteri di tubuh pasien.'
+      },
+      {
+        id: 8,
+        title: 'Vektor Kloning Gen di Laboratorium Molekuler',
+        virusName: 'Bakteriofag Lambda (λ) / Cosmid',
+        morphology: 'bacteriophage',
+        role: 'menguntungkan',
+        subCategory: 'Rekayasa Genetika',
+        clue: 'Digunakan peneliti bioteknologi untuk membawa fragmen DNA berukuran besar ke dalam bakteri Escherichia coli guna memperbanyak salinan gen tertentu (kloning DNA).',
+        labNote: 'Bakteriofag Lambda memiliki efisiensi infeksi jauh lebih tinggi dibanding plasmid biasa sehingga sangat efektif sebagai vektor kloning pustaka genom.'
+      },
+      {
+        id: 9,
+        title: 'Pengendali Ledakan Populasi Alga (Algal Bloom)',
+        virusName: 'Cyanophage (Virus Pemakan Cyanobacteria)',
+        morphology: 'bacteriophage',
+        role: 'menguntungkan',
+        subCategory: 'Biopestisida & Pertanian',
+        clue: 'Berperan mengendalikan ledakan populasi alga biru-hijau penghasil racun di perairan danau atau tambak budidaya perikanan agar kualitas air tetap terjaga.',
+        labNote: 'Cyanophage melisiskan sel Cyanobacteria (seperti Microcystis) secara alami sehingga mencegah eutrofikasi parah dan kematian ikan di perairan pertanian/tambak.'
+      },
+      {
+        id: 10,
+        title: 'Pemetaan Kromosom & Riset Genetika Molekuler',
+        virusName: 'Bakteriofag T2 & T4 (Eksperimen Hershey-Chase)',
+        morphology: 'bacteriophage',
+        role: 'menguntungkan',
+        subCategory: 'Rekayasa Genetika',
+        clue: 'Struktur genomnya yang sederhana menjadikan virus ini model utama untuk membuktikan bahwa DNA adalah pembawa materi genetik dan memetakan lokus gen.',
+        labNote: 'Eksperimen Alfred Hershey dan Martha Chase (1952) menggunakan Bakteriofag T2 membuktikan secara pasti bahwa DNA—bukan protein—merupakan materi pewarisan sifat.'
+      },
+      {
+        id: 11,
+        title: 'Pestisida Mikrobial Pelindung Ekosistem Hutan',
+        virusName: 'Lymantria dispar Multicapsid NPV (LdMNPV)',
+        morphology: 'helical',
+        role: 'menguntungkan',
+        subCategory: 'Biopestisida & Pertanian',
+        clue: 'Digunakan untuk menekan wabah ngengat penggundul daun pohon di kawasan kehutanan dan perkebunan tanpa meninggalkan residu kimia beracun di alam.',
+        labNote: 'Pestisida berbasis virus kehutanan ini bekerja secara ekologis karena inangnya sangat spesifik hanya pada spesies ulat hama target.'
+      },
+      {
+        id: 12,
+        title: 'Vaksin Rekombinan Hewan Ternak (Anti-Rabies)',
+        virusName: 'Vektor Vaccinia Virus (Poxvirus) Rekombinan',
+        morphology: 'enveloped',
+        role: 'menguntungkan',
+        subCategory: 'Biopestisida & Pertanian',
+        clue: 'Virus Vaccinia yang disisipi gen glikoprotein disebarkan melalui umpan oral untuk melindungi hewan ternak dan satwa liar dari wabah rabies serta rinderpest.',
+        labNote: 'Pemanfaatan vaksin rekombinan ini berhasil membasmi penyakit sampar sapi (rinderpest) secara global sehingga menyelamatkan sektor peternakan dan pertanian.'
+      },
+
+      // --- KELOMPOK MERUGIKAN (14 KASUS) ---
+      {
+        id: 13,
+        title: 'HIV / AIDS (Pelemahan Sistem Imun Tubuh)',
+        virusName: 'Human Immunodeficiency Virus (Retrovirus RNA)',
+        morphology: 'enveloped',
+        role: 'merugikan',
+        subCategory: 'Penyakit Manusia',
+        clue: 'Menyerang dan menghancurkan sel limfosit T-helper (CD4+) menggunakan enzim reverse transcriptase, sehingga sistem kekebalan tubuh penderita lumpuh total.',
+        labNote: 'Rusaknya sel T CD4+ menyebabkan penderita AIDS sangat rentan terhadap infeksi oportunistik (seperti TBC dan pneumonia) yang berakibat fatal.'
+      },
+      {
+        id: 14,
+        title: 'Flu Burung (H5N1) & Influenza Musiman',
+        virusName: 'Orthomyxovirus / Influenza A Virus (RNA)',
+        morphology: 'enveloped',
+        role: 'merugikan',
+        subCategory: 'Penyakit Manusia',
+        clue: 'Menginfeksi sel epitel saluran pernapasan atas dan paru-paru dengan bantuan tonjolan protein Hemaglutinin (H) dan Neuraminidase (N), memicu demam tinggi dan sesak napas.',
+        labNote: 'Virus Influenza memiliki genom RNA bersegmen yang mudah mengalami mutasi (antigenic drift/shift) sehingga memunculkan varian flu baru setiap tahun.'
+      },
+      {
+        id: 15,
+        title: 'Demam Berdarah Dengue (DBD)',
+        virusName: 'Flavivirus / Dengue Virus (DENV 1–4)',
+        morphology: 'enveloped',
+        role: 'merugikan',
+        subCategory: 'Penyakit Manusia',
+        clue: 'Ditularkan melalui gigitan nyamuk betina Aedes aegypti, menyebabkan demam tinggi mendadak, nyeri sendi hebat, kebocoran plasma darah, dan penurunan trombosit drastis.',
+        labNote: 'Infeksi virus Dengue memicu badai sitokin yang meningkatkan permeabilitas pembuluh darah kapiler sehingga berisiko menyebabkan syok hemoragik.'
+      },
+      {
+        id: 16,
+        title: 'Poliomielitis (Kelumpuhan Sistem Saraf)',
+        virusName: 'Poliovirus (Picornavirus RNA tanpa sampul)',
+        morphology: 'icosahedral',
+        role: 'merugikan',
+        subCategory: 'Penyakit Manusia',
+        clue: 'Masuk melalui saluran pencernaan lalu menyebar menyerang sel-sel saraf motorik di sumsum tulang belakang, mengakibatkan kelumpuhan permanen pada tungkai anak.',
+        labNote: 'Poliovirus menghancurkan neuron motorik di kornu anterior medula spinalis sehingga otot kehilangan sinyal saraf dan mengalami atrofi (pengecilan).'
+      },
+      {
+        id: 17,
+        title: 'Hepatitis B & C (Peradangan & Sirosis Hati)',
+        virusName: 'Hepatitis B Virus (DNA) & Hepatitis C Virus (RNA)',
+        morphology: 'enveloped',
+        role: 'merugikan',
+        subCategory: 'Penyakit Manusia',
+        clue: 'Menginfeksi sel-sel hepatosit organ hati melalui kontak cairan tubuh atau jarum suntik tidak steril, memicu penyakit kuning (jaundice), sirosis, hingga kanker hati.',
+        labNote: 'Peradangan kronis akibat replikasi virus Hepatitis di dalam hepatosit menyebabkan terbentuknya jaringan parut (fibrosis/sirosis) yang merusak fungsi hati.'
+      },
+      {
+        id: 18,
+        title: 'Rabies / Penyakit Anjing Gila',
+        virusName: 'Rhabdovirus / Lyssavirus berbentuk peluru (RNA)',
+        morphology: 'helical',
+        role: 'merugikan',
+        subCategory: 'Penyakit Hewan',
+        clue: 'Menyerang sistem saraf pusat hewan mamalia (anjing, kucing, kelelawar) dan dapat menular melalui gigitan air liur, memicu gejala hidrofobia (takut air) dan kejang.',
+        labNote: 'Rhabdovirus menjalar sepanjang akson saraf tepi menuju otak dan menyebabkan radang otak (ensefalitis) akut yang hampir selalu fatal jika gejala sudah muncul.'
+      },
+      {
+        id: 19,
+        title: 'Gondongan / Parotitis Epidemika',
+        virusName: 'Paramyxovirus / Mumps Virus (RNA)',
+        morphology: 'enveloped',
+        role: 'merugikan',
+        subCategory: 'Penyakit Manusia',
+        clue: 'Menyebabkan pembengkakan nyeri pada kelenjar ludah parotis di bagian bawah telinga dan pipi, disertai demam serta nyeri saat mengunyah makanan.',
+        labNote: 'Paramyxovirus menular melalui percikan droplet saluran napas dan bereplikasi di kelenjar parotis; dapat dicegah efektif dengan imunisasi vaksin MMR.'
+      },
+      {
+        id: 20,
+        title: 'Cacar Air & Herpes Zoster',
+        virusName: 'Varicella-Zoster Virus (Herpesvirus DNA)',
+        morphology: 'enveloped',
+        role: 'merugikan',
+        subCategory: 'Penyakit Manusia',
+        clue: 'Menimbulkan ruam bintil-bintil melenting berisi cairan yang terasa gatal di seluruh permukaan kulit dan dapat menetap secara laten di serabut saraf selama bertahun-tahun.',
+        labNote: 'Setelah cacar air sembuh, Varicella-zoster virus bersembunyi di ganglion saraf dan dapat aktif kembali di usia dewasa sebagai herpes zoster (cacar ular).'
+      },
+      {
+        id: 21,
+        title: 'Tetelo / Newcastle Disease pada Unggas',
+        virusName: 'Newcastle Disease Virus / Avian Paramyxovirus (NCD)',
+        morphology: 'enveloped',
+        role: 'merugikan',
+        subCategory: 'Penyakit Hewan',
+        clue: 'Menyerang sistem pernapasan dan saraf ayam serta unggas ternak lainnya, ditandai dengan gejala leher terpuntir (tortikolis), gangguan napas, dan kematian massal.',
+        labNote: 'Penyakit Tetelo (NCD) sangat menular di peternakan ayam dan menyebabkan kerugian ekonomi besar akibat tingkat mortalitas unggas yang mencapai hingga 90%.'
+      },
+      {
+        id: 22,
+        title: 'Penyakit Mulut dan Kuku (PMK) pada Ternak',
+        virusName: 'Aphthovirus (Picornaviridae RNA)',
+        morphology: 'icosahedral',
+        role: 'merugikan',
+        subCategory: 'Penyakit Hewan',
+        clue: 'Menyerang hewan ternak berkuku belah seperti sapi, kerbau, kambing, dan domba dengan gejala lepuh pada lidah, gusi, serta teracak kaki sehingga ternak pincang.',
+        labNote: 'Aphthovirus menyebar sangat cepat lewat udara dan kontak langsung antarternak, menurunkan produksi susu dan bobot daging secara drastis.'
+      },
+      {
+        id: 23,
+        title: 'Penyakit Mosaik pada Daun Tembakau',
+        virusName: 'Tobacco Mosaic Virus (TMV - RNA Heliks)',
+        morphology: 'helical',
+        role: 'merugikan',
+        subCategory: 'Penyakit Tumbuhan',
+        clue: 'Menyebabkan bercak-bercak belang hijau muda dan kuning (mosaik) pada daun tanaman tembakau, tomat, dan cabai sehingga merusak kloroplas serta menghambat fotosintesis.',
+        labNote: 'TMV merupakan virus pertama yang berhasil dikristalkan oleh Wendell Stanley (1935); sangat tahan panas dan mudah menular lewat gesekan tangan maupun alat pertanian.'
+      },
+      {
+        id: 24,
+        title: 'Penyakit Tungro pada Tanaman Padi',
+        virusName: 'Rice Tungro Bacilliform & Spherical Virus',
+        morphology: 'helical',
+        role: 'merugikan',
+        subCategory: 'Penyakit Tumbuhan',
+        clue: 'Ditularkan oleh serangga vektor wereng hijau (Nephotettix virescens), menyebabkan pertumbuhan tanaman padi menjadi kerdil dan daun berubah warna kuning-oranye.',
+        labNote: 'Tungro disebabkan oleh infeksi ganda dua jenis virus (RTBV dan RTSV) yang merusak jaringan pengangkut padi sehingga bulir gabah menjadi hampa.'
+      },
+      {
+        id: 25,
+        title: 'Penyakit CVPD (Degenerasi Pembuluh Floem Jeruk)',
+        virusName: 'Patogen CVPD (Citrus Vein Phloem Degeneration)',
+        morphology: 'icosahedral',
+        role: 'merugikan',
+        subCategory: 'Penyakit Tumbuhan',
+        clue: 'Ditularkan oleh kutu loncat jeruk (Diaphorina citri), merusak jaringan pembuluh tapis (floem) batang jeruk sehingga daun menguning dan buah menjadi kecil serta masam.',
+        labNote: 'Dalam kurikulum Biologi SMA, CVPD dipelajari sebagai penyakit degenerasi pembuluh floem tanaman jeruk yang menghambat distribusi hasil fotosintesis dari daun ke seluruh bagian pohon.'
+      },
+      {
+        id: 26,
+        title: 'Kutil Kulit & Kanker Leher Rahim (Serviks)',
+        virusName: 'Human Papillomavirus (HPV - DNA Ikosahedral)',
+        morphology: 'icosahedral',
+        role: 'merugikan',
+        subCategory: 'Penyakit Manusia',
+        clue: 'Menginfeksi sel epitel skuamosa kulit dan membran mukosa; beberapa galur risiko tinggi (seperti HPV-16 dan HPV-18) memicu pertumbuhan sel abnormal penyebab kanker serviks.',
+        labNote: 'Protein onkogen E6 dan E7 milik HPV menonaktifkan gen penekan tumor (p53 dan pRb) di sel epitel manusia sehingga pembelahan sel menjadi tidak terkendali.'
+      }
+    ];
+
+    // =========================================================================
+    // 4. GAME STATE & CONFIGURATION
+    // =========================================================================
+    const DIFFICULTIES = {
+      pemula: { label: 'Pemula', count: 10, timePerCard: 30 },
+      peneliti: { label: 'Peneliti', count: 14, timePerCard: 20 },
+      ahli: { label: 'Virolog Ahli', count: 20, timePerCard: 14 }
+    };
+
+    const SUB_CATEGORIES = {
+      menguntungkan: [
+        'Terapi Medis & Vaksin',
+        'Biopestisida & Pertanian',
+        'Rekayasa Genetika'
+      ],
+      merugikan: [
+        'Penyakit Manusia',
+        'Penyakit Hewan',
+        'Penyakit Tumbuhan'
+      ]
+    };
+
+    let gameState = {
+      playerName: 'Peneliti Muda',
+      difficulty: 'pemula',
+      mode: 'sorter', // 'sorter' | 'detective'
+      deck: [],
+      currentIndex: 0,
+      score: 0,
+      combo: 1,
+      consecutiveCorrect: 0,
+      maxCombo: 1,
+      shields: 3,
+      timeRemaining: 30,
+      timerInterval: null,
+      autoAdvanceTimeout: null,
+      isTimerPaused: false,
+      cardPhase: 'primary', // 'primary' | 'stage2' | 'resolved'
+      pendingPrimaryChoice: null,
+      pendingPrimaryCorrect: false,
+      history: [] // Array of { card, playerRole, playerSub, isPrimaryCorrect, isSubCorrect, pointsEarned, timedOut }
+    };
+
+    // =========================================================================
+    // 5. INITIALIZATION, THEME & SOUND CONTROLS
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      // Populate Hero SVG illustrations
+      document.getElementById('hero-svg-phage').innerHTML = getVirusSVG('bacteriophage');
+      document.getElementById('hero-svg-enveloped').innerHTML = getVirusSVG('enveloped');
+      document.getElementById('hero-svg-icosa').innerHTML = getVirusSVG('icosahedral');
+      document.getElementById('hero-svg-helical').innerHTML = getVirusSVG('helical');
+
+      // Check saved theme preference (defaults to bright clean Light Mode)
+      if (localStorage.getItem('virosort-theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+
+      // Initialize Encyclopedia content & search listener
+      renderEncyclopediaCards('all', '');
+      document.getElementById('ency-search-input').addEventListener('input', (e) => {
+        renderEncyclopediaCards(currentEncyFilter, e.target.value);
+      });
+
+      // Keyboard Shortcuts Listener
+      document.addEventListener('keydown', handleGlobalKeydown);
+
+      // Mobile & Touch Swipe/Drag Support on Specimen Card
+      setupTouchDragSupport();
+    });
+
+    function toggleTheme() {
+      SoundFX.click();
+      const html = document.documentElement;
+      html.classList.toggle('dark');
+      localStorage.setItem('virosort-theme', html.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    function toggleSound() {
+      const isOn = SoundFX.toggle();
+      if (isOn) SoundFX.click();
+      document.getElementById('icon-sound-on').classList.toggle('hidden', !isOn);
+      document.getElementById('icon-sound-off').classList.toggle('hidden', isOn);
+    }
+
+    function selectDifficulty(diffKey) {
+      SoundFX.click();
+      gameState.difficulty = diffKey;
+
+      document.querySelectorAll('.diff-btn').forEach((btn) => {
+        const active = btn.getAttribute('data-diff') === diffKey;
+        if (active) {
+          btn.className = 'diff-btn w-full p-3.5 rounded-2xl border-2 border-cyan-500 bg-cyan-50/70 dark:bg-cyan-950/40 text-left transition-all flex items-center justify-between gap-3';
+        } else {
+          btn.className = 'diff-btn w-full p-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 hover:border-cyan-400 text-left transition-all flex items-center justify-between gap-3';
+        }
+      });
+    }
+
+    // =========================================================================
+    // 6. SCREEN NAVIGATION & GAME START / RESET
+    // =========================================================================
+    function showScreen(screenId) {
+      ['screen-home', 'screen-game', 'screen-results'].forEach((id) => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(screenId).classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function confirmReturnHome() {
+      SoundFX.click();
+      const gameVisible = !document.getElementById('screen-game').classList.contains('hidden');
+      if (gameVisible) {
+        gameState.isTimerPaused = true;
+        document.getElementById('confirm-home-modal').classList.remove('hidden');
+      } else {
+        goHomeScreen();
+      }
+    }
+
+    function closeConfirmHome() {
+      SoundFX.click();
+      document.getElementById('confirm-home-modal').classList.add('hidden');
+      if (gameState.cardPhase !== 'resolved') {
+        gameState.isTimerPaused = false;
+      }
+    }
+
+    function forceReturnHome() {
+      SoundFX.click();
+      document.getElementById('confirm-home-modal').classList.add('hidden');
+      clearTimers();
+      goHomeScreen();
+    }
+
+    function goHomeScreen() {
+      clearTimers();
+      showScreen('screen-home');
+    }
+
+    function clearTimers() {
+      if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = null;
+      }
+      if (gameState.autoAdvanceTimeout) {
+        clearTimeout(gameState.autoAdvanceTimeout);
+        gameState.autoAdvanceTimeout = null;
+      }
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function startGame(mode) {
+      SoundFX.click();
+      const rawName = document.getElementById('player-name-input').value.trim();
+      const diffConfig = DIFFICULTIES[gameState.difficulty];
+
+      // Build balanced shuffled deck of requested size
+      const shuffledAll = shuffleArray(VIRUS_CARDS);
+      const selectedDeck = shuffledAll.slice(0, diffConfig.count);
+
+      gameState = {
+        ...gameState,
+        playerName: rawName || 'Peneliti Muda',
+        mode: mode,
+        deck: selectedDeck,
+        currentIndex: 0,
+        score: 0,
+        combo: 1,
+        consecutiveCorrect: 0,
+        maxCombo: 1,
+        shields: 3,
+        timeRemaining: diffConfig.timePerCard,
+        isTimerPaused: false,
+        cardPhase: 'primary',
+        pendingPrimaryChoice: null,
+        pendingPrimaryCorrect: false,
+        history: []
+      };
+
+      // Update Top HUD Labels
+      document.getElementById('hud-mode-badge').textContent =
+        mode === 'sorter' ? 'MODE 1: BIO-SORTER' : 'MODE 2: DETEKTIF';
+      document.getElementById('hud-player-name').textContent = gameState.playerName;
+
+      showScreen('screen-game');
+      renderCurrentCard();
+    }
+
+    function replaySameSettings() {
+      startGame(gameState.mode);
+    }
+
+    // =========================================================================
+    // 7. RENDERING SPECIMEN CARD, HUD, & COUNTDOWN TIMER
+    // =========================================================================
+    function updateHUD() {
+      const total = gameState.deck.length;
+      const currentNum = Math.min(gameState.currentIndex + 1, total);
+
+      document.getElementById('hud-question-progress').textContent = `${currentNum} / ${total}`;
+      document.getElementById('hud-score').textContent = gameState.score.toLocaleString('id-ID');
+
+      // Combo Badge
+      const comboBadge = document.getElementById('hud-combo-badge');
+      comboBadge.textContent = `${gameState.combo}x COMBO`;
+      if (gameState.combo >= 3) {
+        comboBadge.className = 'px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-mono text-xs font-extrabold shadow-md scale-105 transition-transform';
+      } else if (gameState.combo === 2) {
+        comboBadge.className = 'px-3 py-1.5 rounded-xl bg-amber-100 dark:bg-amber-950 border border-amber-400 text-amber-800 dark:text-amber-300 font-mono text-xs font-extrabold transition-transform';
+      } else {
+        comboBadge.className = 'px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-mono text-xs font-bold transition-transform';
+      }
+
+      // 3 Bio-Shields
+      const shieldsEl = document.getElementById('hud-shields');
+      let shieldsHTML = '';
+      for (let i = 1; i <= 3; i++) {
+        const active = i <= gameState.shields;
+        shieldsHTML += `
+          <svg class="w-5 h-5 transition-all duration-300 ${active ? 'text-cyan-500 scale-100' : 'text-slate-300 dark:text-slate-700 scale-75 opacity-45'}" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/>
+          </svg>
+        `;
+      }
+      shieldsEl.innerHTML = shieldsHTML;
+    }
+
+    function renderCurrentCard() {
+      clearTimers();
+
+      const card = gameState.deck[gameState.currentIndex];
+      const diffConfig = DIFFICULTIES[gameState.difficulty];
+
+      gameState.cardPhase = 'primary';
+      gameState.pendingPrimaryChoice = null;
+      gameState.pendingPrimaryCorrect = false;
+      gameState.timeRemaining = diffConfig.timePerCard;
+      gameState.isTimerPaused = false;
+
+      // Reset panels
+      document.getElementById('detective-stage2-panel').classList.add('hidden');
+      document.getElementById('lab-note-panel').classList.add('hidden');
+      document.getElementById('drag-hint-bar').classList.remove('hidden');
+
+      // Enable dropzones
+      const zoneGood = document.getElementById('zone-menguntungkan');
+      const zoneBad = document.getElementById('zone-merugikan');
+      zoneGood.classList.remove('opacity-40', 'pointer-events-none', 'dropzone-active-good');
+      zoneBad.classList.remove('opacity-40', 'pointer-events-none', 'dropzone-active-bad');
+
+      // Populate Specimen Card
+      const cardEl = document.getElementById('specimen-card');
+      cardEl.classList.remove('animate-shake', 'animate-pop-in');
+      cardEl.style.transform = '';
+      void cardEl.offsetWidth; // trigger reflow for animation
+      cardEl.classList.add('animate-pop-in');
+
+      document.getElementById('card-specimen-code').textContent =
+        `SPESIMEN #${String(card.id).padStart(2, '0')}`;
+      document.getElementById('card-morphology-tag').textContent =
+        MORPHOLOGY_LABELS[card.morphology];
+      document.getElementById('card-virus-svg').innerHTML = getVirusSVG(card.morphology);
+      document.getElementById('card-title').textContent = card.title;
+      document.getElementById('card-virus-name').textContent = card.virusName;
+      document.getElementById('card-clue').textContent = card.clue;
+
+      updateHUD();
+      SoundFX.cardFlip();
+      startCardTimer();
+    }
+
+    function startCardTimer() {
+      const maxTime = DIFFICULTIES[gameState.difficulty].timePerCard;
+      const barEl = document.getElementById('hud-timer-bar');
+      const textEl = document.getElementById('hud-timer-text');
+
+      barEl.style.width = '100%';
+      barEl.className = 'h-full bg-gradient-to-r from-cyan-500 to-emerald-500 transition-all duration-100 w-full rounded-full';
+      textEl.textContent = `${gameState.timeRemaining.toFixed(1)} dtk`;
+
+      gameState.timerInterval = setInterval(() => {
+        if (gameState.isTimerPaused || gameState.cardPhase === 'resolved') return;
+
+        gameState.timeRemaining = Math.max(0, gameState.timeRemaining - 0.1);
+        const pct = (gameState.timeRemaining / maxTime) * 100;
+
+        barEl.style.width = `${pct}%`;
+        textEl.textContent = `${gameState.timeRemaining.toFixed(1)} dtk`;
+
+        if (pct <= 25) {
+          barEl.className = 'h-full bg-rose-500 transition-all duration-100 rounded-full';
+        } else if (pct <= 50) {
+          barEl.className = 'h-full bg-amber-500 transition-all duration-100 rounded-full';
+        }
+
+        if (gameState.timeRemaining <= 0) {
+          clearTimers();
+          handleTimeOut();
+        }
+      }, 100);
+    }
+
+    // =========================================================================
+    // 8. ANSWER EVALUATION LOGIC (MODE 1 & MODE 2)
+    // =========================================================================
+    function handlePrimaryChoice(chosenRole) {
+      if (gameState.cardPhase !== 'primary') return;
+
+      const card = gameState.deck[gameState.currentIndex];
+      const isCorrect = chosenRole === card.role;
+
+      // Visually lock primary dropzones
+      document.getElementById('zone-menguntungkan').classList.add('opacity-50', 'pointer-events-none');
+      document.getElementById('zone-merugikan').classList.add('opacity-50', 'pointer-events-none');
+      document.getElementById('drag-hint-bar').classList.add('hidden');
+
+      if (gameState.mode === 'sorter') {
+        // Mode 1 resolves immediately
+        clearTimers();
+        finalizeCardResolution(chosenRole, null, isCorrect, null, false);
+      } else {
+        // Mode 2: Detective Mode -> Move to Stage 2 (Sub-Category Selection)
+        gameState.cardPhase = 'stage2';
+        gameState.pendingPrimaryChoice = chosenRole;
+        gameState.pendingPrimaryCorrect = isCorrect;
+
+        if (isCorrect) {
+          SoundFX.click();
+        } else {
+          SoundFX.wrong();
+          document.getElementById('specimen-card').classList.add('animate-shake');
+        }
+
+        openDetectiveStage2(card, isCorrect);
+      }
+    }
+
+    function openDetectiveStage2(card, primaryWasCorrect) {
+      const panel = document.getElementById('detective-stage2-panel');
+      const promptEl = document.getElementById('stage2-prompt');
+      const optionsEl = document.getElementById('stage2-options');
+
+      const trueRoleLabel = card.role === 'menguntungkan' ? 'MENGUNTUNGKAN' : 'MERUGIKAN';
+      promptEl.innerHTML = primaryWasCorrect
+        ? `✅ Benar (<span class="text-emerald-600 dark:text-emerald-400">${trueRoleLabel}</span>)! Sekarang tentukan <strong>sub-kategori spesifiknya</strong> untuk +75 Poin Bonus:`
+        : `❌ Peran tepatnya adalah <strong>${trueRoleLabel}</strong>. Pilih <strong>sub-kategori spesifiknya</strong> untuk memulihkan poin bonus:`;
+
+      const subList = SUB_CATEGORIES[card.role];
+      optionsEl.innerHTML = subList.map((subName) => `
+        <button type="button" onclick="handleDetectiveStage2Choice('${subName}')"
+          class="p-3.5 rounded-2xl bg-white dark:bg-slate-900 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 border-2 border-indigo-200 dark:border-indigo-700 text-slate-800 dark:text-slate-100 font-bold text-xs sm:text-sm text-center shadow-sm transition-all active:scale-95">
+          ${subName}
+        </button>
+      `).join('');
+
+      panel.classList.remove('hidden');
+    }
+
+    function handleDetectiveStage2Choice(chosenSubCategory) {
+      if (gameState.cardPhase !== 'stage2') return;
+      clearTimers();
+
+      const card = gameState.deck[gameState.currentIndex];
+      const isSubCorrect = chosenSubCategory === card.subCategory;
+
+      document.getElementById('detective-stage2-panel').classList.add('hidden');
+      finalizeCardResolution(
+        gameState.pendingPrimaryChoice,
+        chosenSubCategory,
+        gameState.pendingPrimaryCorrect,
+        isSubCorrect,
+        false
+      );
+    }
+
+    function handleTimeOut() {
+      const card = gameState.deck[gameState.currentIndex];
+      document.getElementById('zone-menguntungkan').classList.add('opacity-50', 'pointer-events-none');
+      document.getElementById('zone-merugikan').classList.add('opacity-50', 'pointer-events-none');
+      document.getElementById('detective-stage2-panel').classList.add('hidden');
+      document.getElementById('drag-hint-bar').classList.add('hidden');
+
+      finalizeCardResolution(null, null, false, false, true);
+    }
+
+    function finalizeCardResolution(playerRole, playerSub, isPrimaryCorrect, isSubCorrect, timedOut) {
+      gameState.cardPhase = 'resolved';
+      const card = gameState.deck[gameState.currentIndex];
+      const maxTime = DIFFICULTIES[gameState.difficulty].timePerCard;
+
+      let pointsEarned = 0;
+
+      if (isPrimaryCorrect) {
+        gameState.consecutiveCorrect += 1;
+        // Combo tiers: 1x -> 2x -> 3x -> 4x max
+        if (gameState.consecutiveCorrect >= 4) {
+          gameState.combo = 4;
+        } else if (gameState.consecutiveCorrect === 3) {
+          gameState.combo = 3;
+        } else if (gameState.consecutiveCorrect === 2) {
+          gameState.combo = 2;
+        } else {
+          gameState.combo = 1;
+        }
+
+        if (gameState.combo > gameState.maxCombo) {
+          gameState.maxCombo = gameState.combo;
+        }
+
+        const timeBonus = Math.round((gameState.timeRemaining / maxTime) * 50);
+        const basePoints = (100 + timeBonus) * gameState.combo;
+        const detectiveBonus = (gameState.mode === 'detective' && isSubCorrect) ? 75 : 0;
+
+        pointsEarned = basePoints + detectiveBonus;
+        gameState.score += pointsEarned;
+
+        if (gameState.consecutiveCorrect >= 2) {
+          SoundFX.comboUp();
+        } else {
+          SoundFX.correct(gameState.combo);
+        }
+      } else {
+        // Wrong primary choice or timeout -> lose 1 Bio-Shield and reset combo
+        gameState.consecutiveCorrect = 0;
+        gameState.combo = 1;
+        gameState.shields = Math.max(0, gameState.shields - 1);
+
+        // Even if primary failed in detective mode, award small partial points if stage 2 sub-category was right
+        if (gameState.mode === 'detective' && isSubCorrect) {
+          pointsEarned = 40;
+          gameState.score += pointsEarned;
+        }
+
+        SoundFX.wrong();
+        document.getElementById('specimen-card').classList.add('animate-shake');
+      }
+
+      // Record in history
+      gameState.history.push({
+        card,
+        playerRole,
+        playerSub,
+        isPrimaryCorrect,
+        isSubCorrect,
+        pointsEarned,
+        timedOut
+      });
+
+      updateHUD();
+      showLabNotePanel(card, isPrimaryCorrect, isSubCorrect, pointsEarned, timedOut);
+    }
+
+    function showLabNotePanel(card, isPrimaryCorrect, isSubCorrect, pointsEarned, timedOut) {
+      const panel = document.getElementById('lab-note-panel');
+      const statusIcon = document.getElementById('lab-note-status-icon');
+      const heading = document.getElementById('lab-note-heading');
+      const subBadge = document.getElementById('lab-note-subbadge');
+      const pointsEl = document.getElementById('lab-note-points');
+      const noteText = document.getElementById('lab-note-text');
+      const nextBtnLabel = document.getElementById('next-card-btn-label');
+
+      const trueRoleText = card.role === 'menguntungkan' ? 'MENGUNTUNGKAN' : 'MERUGIKAN';
+
+      if (isPrimaryCorrect) {
+        panel.className = 'mt-4 rounded-3xl border-2 border-emerald-400 dark:border-emerald-700 bg-emerald-50/90 dark:bg-emerald-950/50 p-5 sm:p-6 shadow-xl animate-pop-in space-y-4';
+        statusIcon.className = 'w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-extrabold';
+        statusIcon.textContent = '✓';
+        heading.className = 'font-extrabold text-base sm:text-lg text-emerald-900 dark:text-emerald-200';
+        heading.textContent = gameState.mode === 'detective'
+          ? (isSubCorrect ? 'ANALISIS DETEKTIF SEMPURNA!' : 'PERAN UTAMA TEPAT!')
+          : 'IDENTIFIKASI AKURAT!';
+        pointsEl.className = 'px-3 py-1 rounded-xl bg-emerald-500 text-white font-mono text-sm font-extrabold shadow-sm';
+        pointsEl.textContent = `+${pointsEarned} Poin`;
+      } else {
+        panel.className = 'mt-4 rounded-3xl border-2 border-rose-400 dark:border-rose-700 bg-rose-50/90 dark:bg-rose-950/50 p-5 sm:p-6 shadow-xl animate-pop-in space-y-4';
+        statusIcon.className = 'w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center font-extrabold';
+        statusIcon.textContent = '!';
+        heading.className = 'font-extrabold text-base sm:text-lg text-rose-900 dark:text-rose-200';
+        heading.textContent = timedOut ? 'WAKTU PEMINDAIAN HABIS!' : 'KLASIFIKASI KURANG TEPAT!';
+        pointsEl.className = 'px-3 py-1 rounded-xl bg-rose-500 text-white font-mono text-sm font-extrabold shadow-sm';
+        pointsEl.textContent = pointsEarned > 0 ? `+${pointsEarned} Bonus` : '-1 Shield';
+      }
+
+      subBadge.className = 'text-xs font-mono font-semibold text-slate-700 dark:text-slate-300';
+      subBadge.textContent = `Kategori: ${trueRoleText} • ${card.subCategory}`;
+      noteText.textContent = card.labNote;
+
+      const isGameEnding = gameState.shields <= 0 || gameState.currentIndex + 1 >= gameState.deck.length;
+      nextBtnLabel.textContent = isGameEnding ? 'Lihat Rapor Akhir' : 'Kartu Berikutnya';
+
+      panel.classList.remove('hidden');
+
+      // Handle Auto-Advance option
+      if (document.getElementById('auto-advance-checkbox').checked) {
+        gameState.autoAdvanceTimeout = setTimeout(() => {
+          advanceToNextCard();
+        }, 4000);
+      }
+    }
+
+    function advanceToNextCard() {
+      if (gameState.cardPhase !== 'resolved') return;
+      SoundFX.click();
+      clearTimers();
+
+      if (gameState.shields <= 0 || gameState.currentIndex + 1 >= gameState.deck.length) {
+        finishGame();
+      } else {
+        gameState.currentIndex += 1;
+        renderCurrentCard();
+      }
+    }
+
+    // =========================================================================
+    // 9. FINAL RESULTS & EVALUATION REPORT SCREEN
+    // =========================================================================
+    function finishGame() {
+      clearTimers();
+      SoundFX.victory();
+
+      const totalAnswered = gameState.history.length;
+      const correctPrimaryCount = gameState.history.filter((h) => h.isPrimaryCorrect).length;
+      const accuracy = totalAnswered > 0 ? Math.round((correctPrimaryCount / totalAnswered) * 100) : 0;
+
+      // Determine Achievement Rank
+      let rankTitle = 'Asisten Lab';
+      let rankDesc = 'Terus berlatih mengenal peranan virus dalam kehidupan! Gunakan Ensiklopedia Mini untuk mengulang contoh-contoh kasus.';
+      if (accuracy >= 90 && gameState.shields > 0) {
+        rankTitle = 'Profesor Bioteknologi';
+        rankDesc = 'Luar biasa! Penguasaanmu terhadap peranan virus menguntungkan dan merugikan mencapai tingkat pakar bioteknologi.';
+      } else if (accuracy >= 75) {
+        rankTitle = 'Doktor Virologi';
+        rankDesc = 'Hebat! Analisis spesimenmu sangat tajam dan akurat dalam membedakan manfaat maupun patogenisitas virus.';
+      } else if (accuracy >= 55) {
+        rankTitle = 'Peneliti Muda';
+        rankDesc = 'Bagus! Kamu sudah memahami sebagian besar konsep peranan virus. Cermati kembali beberapa spesimen pada rapor di bawah.';
+      }
+
+      document.getElementById('res-player-name').textContent = gameState.playerName;
+      document.getElementById('res-mode-diff').textContent =
+        `${gameState.mode === 'sorter' ? 'Bio-Sorter' : 'Mode Detektif'} (${DIFFICULTIES[gameState.difficulty].label})`;
+      document.getElementById('res-rank-title').textContent = rankTitle;
+      document.getElementById('res-rank-desc').textContent = rankDesc;
+
+      document.getElementById('res-total-score').textContent = gameState.score.toLocaleString('id-ID');
+      document.getElementById('res-accuracy').textContent = `${accuracy}%`;
+      document.getElementById('res-max-combo').textContent = `${gameState.maxCombo}x`;
+      document.getElementById('res-summary-ratio').textContent = `${correctPrimaryCount} / ${totalAnswered} Tepat`;
+
+      // Populate Recap Table
+      const tbody = document.getElementById('res-recap-tbody');
+      tbody.innerHTML = gameState.history.map((item, idx) => {
+        const trueRoleLabel = item.card.role === 'menguntungkan' ? 'Menguntungkan' : 'Merugikan';
+        const playerRoleLabel = item.timedOut
+          ? 'Waktu Habis'
+          : item.playerRole === 'menguntungkan'
+            ? 'Menguntungkan'
+            : 'Merugikan';
+
+        const playerAnswerDisplay = gameState.mode === 'detective' && item.playerSub
+          ? `${playerRoleLabel} (${item.playerSub})`
+          : playerRoleLabel;
+
+        const statusBadge = item.isPrimaryCorrect
+          ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold text-xs">Benar (+${item.pointsEarned})</span>`
+          : `<span class="px-2.5 py-1 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-bold text-xs">${item.timedOut ? 'Habis Waktu' : 'Salah'}</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 align-top">
+            <td class="py-3.5 px-4 font-mono font-bold text-slate-500">${idx + 1}</td>
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900 dark:text-white">${item.card.title}</div>
+              <div class="font-mono text-[11px] text-cyan-700 dark:text-cyan-400 mt-0.5">${item.card.virusName}</div>
+            </td>
+            <td class="py-3.5 px-4 font-semibold ${item.isPrimaryCorrect ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
+              ${playerAnswerDisplay}
+            </td>
+            <td class="py-3.5 px-4">
+              <span class="font-bold ${item.card.role === 'menguntungkan' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">
+                ${trueRoleLabel}
+              </span>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">${item.card.subCategory}</div>
+            </td>
+            <td class="py-3.5 px-4 whitespace-nowrap">${statusBadge}</td>
+            <td class="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-300 max-w-xs leading-relaxed">
+              ${item.card.labNote}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      showScreen('screen-results');
+    }
+
+    // =========================================================================
+    // 10. DRAG-AND-DROP (DESKTOP MOUSE + MOBILE TOUCH) & KEYBOARD CONTROLS
+    // =========================================================================
+    function handleDragStart(event) {
+      if (gameState.cardPhase !== 'primary') {
+        event.preventDefault();
+        return;
+      }
+      event.dataTransfer.setData('text/plain', 'specimen');
+      event.dataTransfer.effectAllowed = 'move';
+      document.getElementById('specimen-card').classList.add('opacity-75', 'scale-95');
+    }
+
+    function handleDragEnd() {
+      document.getElementById('specimen-card').classList.remove('opacity-75', 'scale-95');
+      document.getElementById('zone-menguntungkan').classList.remove('dropzone-active-good');
+      document.getElementById('zone-merugikan').classList.remove('dropzone-active-bad');
+    }
+
+    function handleDragOver(event, zoneRole) {
+      if (gameState.cardPhase !== 'primary') return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+
+      if (zoneRole === 'menguntungkan') {
+        document.getElementById('zone-menguntungkan').classList.add('dropzone-active-good');
+      } else {
+        document.getElementById('zone-merugikan').classList.add('dropzone-active-bad');
+      }
+    }
+
+    function handleDragLeave(zoneRole) {
+      if (zoneRole === 'menguntungkan') {
+        document.getElementById('zone-menguntungkan').classList.remove('dropzone-active-good');
+      } else {
+        document.getElementById('zone-merugikan').classList.remove('dropzone-active-bad');
+      }
+    }
+
+    function handleDrop(event, zoneRole) {
+      event.preventDefault();
+      handleDragEnd();
+      if (gameState.cardPhase === 'primary') {
+        handlePrimaryChoice(zoneRole);
+      }
+    }
+
+    // Mobile Touch Swipe / Drag Gesture on Specimen Card
+    function setupTouchDragSupport() {
+      const cardEl = document.getElementById('specimen-card');
+      let startX = 0;
+      let currentDeltaX = 0;
+      let isTouching = false;
+
+      cardEl.addEventListener('touchstart', (e) => {
+        if (gameState.cardPhase !== 'primary' || e.touches.length !== 1) return;
+        startX = e.touches[0].clientX;
+        currentDeltaX = 0;
+        isTouching = true;
+        cardEl.style.transition = 'none';
+      }, { passive: true });
+
+      cardEl.addEventListener('touchmove', (e) => {
+        if (!isTouching || gameState.cardPhase !== 'primary') return;
+        currentDeltaX = e.touches[0].clientX - startX;
+        const rotateDeg = Math.max(-12, Math.min(12, currentDeltaX * 0.05));
+        cardEl.style.transform = `translateX(${currentDeltaX * 0.55}px) rotate(${rotateDeg}deg)`;
+
+        if (currentDeltaX < -45) {
+          document.getElementById('zone-menguntungkan').classList.add('dropzone-active-good');
+          document.getElementById('zone-merugikan').classList.remove('dropzone-active-bad');
+        } else if (currentDeltaX > 45) {
+          document.getElementById('zone-merugikan').classList.add('dropzone-active-bad');
+          document.getElementById('zone-menguntungkan').classList.remove('dropzone-active-good');
+        } else {
+          document.getElementById('zone-menguntungkan').classList.remove('dropzone-active-good');
+          document.getElementById('zone-merugikan').classList.remove('dropzone-active-bad');
+        }
+      }, { passive: true });
+
+      cardEl.addEventListener('touchend', () => {
+        if (!isTouching) return;
+        isTouching = false;
+        cardEl.style.transition = 'transform 0.2s ease';
+        cardEl.style.transform = '';
+        document.getElementById('zone-menguntungkan').classList.remove('dropzone-active-good');
+        document.getElementById('zone-merugikan').classList.remove('dropzone-active-bad');
+
+        if (gameState.cardPhase === 'primary') {
+          if (currentDeltaX < -85) {
+            handlePrimaryChoice('menguntungkan');
+          } else if (currentDeltaX > 85) {
+            handlePrimaryChoice('merugikan');
+          }
+        }
+      });
+    }
+
+    // Keyboard Shortcuts (ArrowLeft / A = Menguntungkan, ArrowRight / D = Merugikan, Enter / Space = Next)
+    function handleGlobalKeydown(e) {
+      // Ignore if typing in input fields or if a modal is open
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      if (!document.getElementById('encyclopedia-modal').classList.contains('hidden')) {
+        if (e.key === 'Escape') closeEncyclopedia();
+        return;
+      }
+      if (!document.getElementById('confirm-home-modal').classList.contains('hidden')) {
+        if (e.key === 'Escape') closeConfirmHome();
+        return;
+      }
+
+      const gameVisible = !document.getElementById('screen-game').classList.contains('hidden');
+      if (!gameVisible) return;
+
+      if (gameState.cardPhase === 'primary') {
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+          e.preventDefault();
+          handlePrimaryChoice('menguntungkan');
+        } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+          e.preventDefault();
+          handlePrimaryChoice('merugikan');
+        }
+      } else if (gameState.cardPhase === 'resolved') {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          advanceToNextCard();
+        }
+      }
+    }
+
+    // =========================================================================
+    // 11. MINI ENCYCLOPEDIA MODAL (26 VIRUS CARDS)
+    // =========================================================================
+    let currentEncyFilter = 'all';
+
+    function openEncyclopedia() {
+      SoundFX.click();
+      // Pause active game timer while reading encyclopedia
+      if (!document.getElementById('screen-game').classList.contains('hidden')) {
+        gameState.isTimerPaused = true;
+      }
+      document.getElementById('encyclopedia-modal').classList.remove('hidden');
+    }
+
+    function closeEncyclopedia() {
+      SoundFX.click();
+      document.getElementById('encyclopedia-modal').classList.add('hidden');
+      if (!document.getElementById('screen-game').classList.contains('hidden') && gameState.cardPhase !== 'resolved') {
+        gameState.isTimerPaused = false;
+      }
+    }
+
+    function setEncyFilter(roleFilter) {
+      SoundFX.click();
+      currentEncyFilter = roleFilter;
+
+      ['all', 'menguntungkan', 'merugikan'].forEach((key) => {
+        const tab = document.getElementById(`ency-tab-${key}`);
+        if (key === roleFilter) {
+          tab.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-cyan-600 text-white shadow-sm transition-all';
+        } else {
+          tab.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-all';
+        }
+      });
+
+      const query = document.getElementById('ency-search-input').value;
+      renderEncyclopediaCards(roleFilter, query);
+    }
+
+    function renderEncyclopediaCards(roleFilter, query) {
+      const q = (query || '').toLowerCase().trim();
+      const filtered = VIRUS_CARDS.filter((c) => {
+        const matchRole = roleFilter === 'all' || c.role === roleFilter;
+        const matchText =
+          !q ||
+          c.title.toLowerCase().includes(q) ||
+          c.virusName.toLowerCase().includes(q) ||
+          c.subCategory.toLowerCase().includes(q) ||
+          c.clue.toLowerCase().includes(q);
+        return matchRole && matchText;
+      });
+
+      const grid = document.getElementById('ency-cards-grid');
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+            Tidak ada spesimen virus yang cocok dengan pencarian "<strong>${query}</strong>".
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map((c) => {
+        const isGood = c.role === 'menguntungkan';
+        const badgeStyle = isGood
+          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+          : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300';
+
+        return `
+          <div class="rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 p-4 flex gap-3.5 items-start">
+            <div class="w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2 shrink-0">
+              ${getVirusSVG(c.morphology)}
+            </div>
+            <div class="space-y-1.5 min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${badgeStyle}">
+                  ${isGood ? 'Menguntungkan' : 'Merugikan'}
+                </span>
+                <span class="px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-semibold">
+                  ${c.subCategory}
+                </span>
+              </div>
+              <h4 class="font-extrabold text-sm text-slate-900 dark:text-white leading-snug">
+                ${c.title}
+              </h4>
+              <div class="font-mono text-[11px] font-semibold text-cyan-700 dark:text-cyan-400">
+                ${c.virusName}
+              </div>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                ${c.labNote}
+              </p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
